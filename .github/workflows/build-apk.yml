@@ -57,12 +57,9 @@ jobs:
         run: |
           mkdir -p output
           cp "$PROJECT_DIR/app/build/outputs/apk/release/app-release.apk" \
-             "output/Accutek-Inventory-v0.2.2-release.apk"
+             "output/Accutek-Inventory-v0.4.1-release.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Accutek-Inventory-APK-v0.2.2
-          path: output/Accutek-Inventory-v0.2.2-release.apk
-          if-no-files-found: error
-          retention-days: 30
+          name: Accutek-Inventory-APK-v0.4.
