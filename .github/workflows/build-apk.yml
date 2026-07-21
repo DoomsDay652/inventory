@@ -43,6 +43,7 @@ jobs:
           ZIP_FILE="$(find . -maxdepth 1 -name 'Accutek_Inventory_Android_Source*.zip' -print | sort -V | tail -n 1)"
           test -n "$ZIP_FILE"
           echo "Building from $ZIP_FILE"
+          rm -rf extracted
           mkdir -p extracted
           unzip -q "$ZIP_FILE" -d extracted
           PROJECT_DIR="$(find extracted -type f -name settings.gradle -printf '%h\n' | head -n 1)"
@@ -57,12 +58,12 @@ jobs:
         run: |
           mkdir -p output
           cp "$PROJECT_DIR/app/build/outputs/apk/release/app-release.apk" \
-             "output/Accutek-Inventory-v0.4.1-release.apk"
+             "output/Accutek-Inventory-v0.4.2-release.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Accutek-Inventory-APK-v0.4.1
-          path: output/Accutek-Inventory-v0.4.1-release.apk
+          name: Accutek-Inventory-APK-v0.4.2
+          path: output/Accutek-Inventory-v0.4.2-release.apk
           if-no-files-found: error
           retention-days: 30
