@@ -1,4 +1,4 @@
-name: Build SkidCount APK
+name: Build Accutek Inventory APK
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "SkidCount_Android_Source*.zip"
+      - "Accutek_Inventory_Android_Source*.zip"
       - ".github/workflows/build-apk.yml"
 
 permissions:
@@ -37,11 +37,12 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Extract SkidCount project
+      - name: Extract newest Accutek Inventory project
         shell: bash
         run: |
-          ZIP_FILE="$(find . -maxdepth 1 -name 'SkidCount_Android_Source*.zip' -print -quit)"
+          ZIP_FILE="$(find . -maxdepth 1 -name 'Accutek_Inventory_Android_Source*.zip' -print | sort -V | tail -n 1)"
           test -n "$ZIP_FILE"
+          echo "Building from $ZIP_FILE"
           mkdir -p extracted
           unzip -q "$ZIP_FILE" -d extracted
           PROJECT_DIR="$(find extracted -type f -name settings.gradle -printf '%h\n' | head -n 1)"
@@ -56,12 +57,12 @@ jobs:
         run: |
           mkdir -p output
           cp "$PROJECT_DIR/app/build/outputs/apk/release/app-release.apk" \
-             output/SkidCount-v0.1-release.apk
+             "output/Accutek-Inventory-v0.2.2-release.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SkidCount-APK
-          path: output/SkidCount-v0.1-release.apk
+          name: Accutek-Inventory-APK-v0.2.2
+          path: output/Accutek-Inventory-v0.2.2-release.apk
           if-no-files-found: error
           retention-days: 30
