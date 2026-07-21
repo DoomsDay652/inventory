@@ -62,4 +62,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Accutek-Inventory-APK-v0.4.
+          name: Accutek-Inventory-APK-v0.4.1
+          path: output/Accutek-Inventory-v0.4.1-release.apk
+          if-no-files-found: error
+          retention-days: 30
