@@ -1,0 +1,3344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#132235" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Accutek Inventory v0.6.2</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --surface-2: #f7f9fa;
+  --ink: #142132;
+  --muted: #647184;
+  --line: #d8e0e6;
+  --brand: #132235;
+  --brand-2: #284a6d;
+  --accent: #e9a63a;
+  --success: #17795a;
+  --danger: #b33a3a;
+  --shadow: 0 10px 28px rgba(17, 33, 50, 0.10);
+  --radius: 18px;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.hidden { display: none !important; }
+.topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; min-height: 82px; padding: 16px 18px 12px; color: white; background: var(--brand); box-shadow: 0 3px 18px rgba(0,0,0,.16); }
+h1, h2, h3, p { margin-top: 0; }
+h1 { margin-bottom: 0; font-size: 26px; line-height: 1; letter-spacing: -.03em; }
+.brand-title-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.app-version { color: rgba(255,255,255,.72); font-size: 10px; font-weight: 800; letter-spacing: .08em; white-space: nowrap; }
+h2 { margin-bottom: 0; font-size: 23px; letter-spacing: -.02em; }
+h3 { margin-bottom: 5px; font-size: 17px; }
+p { color: var(--muted); line-height: 1.45; }
+.eyebrow { margin-bottom: 5px; font-size: 10px; font-weight: 800; letter-spacing: .16em; opacity: .72; }
+#app { padding: 18px 16px 108px; max-width: 760px; margin: 0 auto; }
+.view { display: none; }
+.view.active { display: block; animation: fade .18s ease-out; }
+@keyframes fade { from { opacity: .35; transform: translateY(4px); } }
+.summary-scope { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px 14px; align-items: end; margin-bottom: 11px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); box-shadow: 0 3px 12px rgba(17,33,50,.05); }
+.summary-scope label { display: grid; gap: 5px; min-width: 0; color: var(--muted); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+.summary-scope select { width: 100%; min-height: 42px; padding: 8px 36px 8px 11px; border: 1px solid var(--line); border-radius: 11px; color: var(--text); background: white; font-size: 14px; font-weight: 800; }
+.summary-scope-note { max-width: 180px; padding-bottom: 8px; color: var(--muted); font-size: 11px; font-weight: 700; text-align: right; }
+.summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+.summary-card { padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: 0 3px 12px rgba(17,33,50,.05); }
+.summary-card span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.summary-card strong { font-size: 24px; }
+.toolbar { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; margin-bottom: 14px; }
+.search-wrap span, .field label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+input, select, textarea { width: 100%; min-height: 47px; border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; color: var(--ink); background: white; outline: none; }
+textarea { min-height: 82px; resize: vertical; }
+input:focus, select:focus, textarea:focus { border-color: var(--brand-2); box-shadow: 0 0 0 3px rgba(40,74,109,.12); }
+.primary, .secondary, .danger, .icon-btn, .file-label { min-height: 46px; border: 0; border-radius: 12px; padding: 10px 15px; font-weight: 800; }
+.primary { color: white; background: var(--brand); }
+.primary:active { transform: translateY(1px); }
+.secondary, .file-label { border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
+.danger { color: white; background: var(--danger); }
+.small { min-height: 38px; padding: 7px 11px; font-size: 13px; }
+.wide { width: 100%; }
+.parts-list { display: grid; gap: 12px; }
+.inventory-hint { margin-bottom: 13px; padding: 11px 13px; border: 1px solid #cad8e3; border-radius: 14px; color: #294156; background: #edf6fa; font-size: 12px; }
+.part-folder { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 5px 17px rgba(17,33,50,.06); }
+.part-folder > summary { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: center; min-height: 68px; padding: 13px 15px; list-style: none; cursor: pointer; }
+.part-folder > summary::-webkit-details-marker { display: none; }
+.part-folder > summary::after { content: "›"; grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--muted); font-size: 25px; transform: rotate(0); transition: transform .15s ease; }
+.part-folder[open] > summary::after { transform: rotate(90deg); }
+.folder-title { display: block; min-width: 0; font-size: 18px; font-weight: 900; }
+.folder-note { display: block; overflow: hidden; margin-top: 2px; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.folder-summary-meta { grid-column: 1; display: flex; flex-wrap: wrap; gap: 5px 10px; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.folder-body { padding: 0 10px 10px; border-top: 1px solid var(--line); background: var(--surface-2); }
+.folder-toolbar { display: flex; justify-content: space-between; gap: 9px; padding: 10px 0; }
+.folder-empty { padding: 22px 12px; border: 1px dashed #bdc8d0; border-radius: 14px; text-align: center; background: white; }
+.folder-empty p { margin-bottom: 10px; font-size: 12px; }
+.folder-children { display: grid; gap: 10px; }
+.folder-children .part-card { box-shadow: none; }
+.part-card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 5px 17px rgba(17,33,50,.06); }
+.part-main { padding: 16px; }
+.part-title-row { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
+.part-title-row h3 { margin-bottom: 2px; font-size: 19px; }
+.part-meta { color: var(--muted); font-size: 12px; }
+.stock-total { text-align: right; }
+.stock-total strong { display: block; font-size: 23px; }
+.stock-total span { color: var(--muted); font-size: 11px; }
+.stock-breakdown { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-top: 15px; }
+.stock-cell { padding: 10px; border-radius: 12px; background: var(--surface-2); }
+.stock-cell span { display: block; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.stock-cell strong { font-size: 16px; }
+.low-stock { margin-top: 10px; color: var(--danger); font-size: 12px; font-weight: 800; }
+.part-actions { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--line); }
+.part-actions button { min-height: 52px; border: 0; border-right: 1px solid var(--line); padding: 6px; color: var(--ink); background: #fbfcfd; font-size: 11px; font-weight: 800; }
+.part-actions button:last-child { border-right: 0; }
+.part-actions button span { display: block; margin-bottom: 2px; font-size: 17px; }
+.empty-state { display: none; padding: 54px 22px; border: 1px dashed #bdc8d0; border-radius: var(--radius); text-align: center; background: rgba(255,255,255,.55); }
+.empty-state.show { display: block; }
+.empty-state.compact { padding: 34px 20px; }
+.empty-icon { font-size: 44px; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.action-card { display: grid; grid-template-columns: auto 1fr auto; gap: 13px; align-items: center; margin-bottom: 13px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 5px 17px rgba(17,33,50,.06); }
+.action-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; color: white; background: var(--brand-2); font-size: 24px; }
+.custom-card .action-icon { background: var(--accent); color: #30230f; }
+.scan-card .action-icon { background: var(--success); }
+.action-copy h3, .action-copy p { margin-bottom: 0; }
+.action-copy p { font-size: 12px; }
+.history-list { display: grid; gap: 10px; }
+.history-item { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.history-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; color: white; background: var(--brand-2); font-weight: 900; }
+.history-item h3 { margin-bottom: 2px; font-size: 15px; }
+.history-item p { margin-bottom: 0; font-size: 12px; }
+.history-time { color: var(--muted); font-size: 10px; text-align: right; }
+.undo-btn { margin-top: 5px; border: 0; padding: 0; color: var(--brand-2); background: transparent; font-size: 11px; font-weight: 800; }
+.settings-card { margin-bottom: 13px; padding: 17px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.settings-card p { font-size: 13px; }
+.button-row { display: flex; flex-wrap: wrap; gap: 9px; }
+.file-label { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.file-label input { display: none; }
+.danger-zone { border-color: #ecc7c7; }
+.bottom-nav { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5,1fr); padding: 7px 5px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(255,255,255,.1); color: white; background: var(--brand); box-shadow: 0 -8px 24px rgba(17,33,50,.16); }
+.nav-btn { min-height: 58px; border: 0; border-radius: 11px; color: #b8c4d0; background: transparent; font-size: 10px; font-weight: 800; }
+.nav-btn span { display: block; margin-bottom: 2px; font-size: 20px; }
+.nav-btn.active { color: white; background: rgba(255,255,255,.11); }
+.modal { width: 100%; max-width: 720px; height: 100%; max-height: 100%; margin: 0; padding: 0; border: 0; background: transparent; }
+.modal::backdrop { background: rgba(8,17,27,.62); backdrop-filter: blur(3px); }
+.modal-shell { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; max-height: 94vh; border-radius: 24px 24px 0 0; background: var(--surface); box-shadow: var(--shadow); }
+.modal-header { display: flex; align-items: start; justify-content: space-between; padding: 18px 18px 13px; border-bottom: 1px solid var(--line); }
+.modal-body { overflow-y: auto; padding: 17px 18px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 13px 18px calc(13px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: white; }
+.close-btn { width: 40px; height: 40px; border: 0; border-radius: 12px; color: var(--muted); background: var(--surface-2); font-size: 25px; }
+.form-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+.field.full { grid-column: 1 / -1; }
+.help { margin-top: 5px; color: var(--muted); font-size: 11px; }
+.receipt-row { margin-bottom: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface-2); }
+.receipt-row-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.remove-row { border: 0; color: var(--danger); background: transparent; font-weight: 800; }
+.receipt-total { margin-top: 10px; padding: 10px 12px; border-radius: 11px; color: white; background: var(--brand-2); font-weight: 800; }
+.scan-preview { overflow: hidden; margin-bottom: 12px; border-radius: 14px; background: #e9eef1; }
+.scan-preview img { display: block; width: 100%; max-height: 220px; object-fit: contain; }
+.scan-status { margin-bottom: 12px; padding: 11px; border-radius: 12px; color: #2c3b4d; background: #edf4f8; font-size: 12px; }
+.toast { position: fixed; z-index: 100; left: 50%; bottom: 94px; transform: translate(-50%, 20px); max-width: calc(100% - 32px); padding: 11px 15px; border-radius: 12px; color: white; background: #101c2a; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: .22s ease; font-size: 13px; font-weight: 700; }
+.toast.show { opacity: 1; transform: translate(-50%,0); }
+@media (min-width: 680px) {
+  .modal { margin: auto; height: auto; max-height: 90vh; }
+  .modal-shell { position: static; max-height: 90vh; border-radius: 24px; }
+  .bottom-nav { left: 50%; width: 620px; transform: translateX(-50%); border-radius: 18px 18px 0 0; }
+}
+@media (max-width: 420px) {
+  .action-card { grid-template-columns: auto 1fr; }
+  .action-card button { grid-column: 1 / -1; width: 100%; }
+  .form-grid { grid-template-columns: 1fr; }
+  .field.full { grid-column: auto; }
+}
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.topbar .icon-btn { min-height: 38px; padding: 7px 11px; border: 1px solid rgba(255,255,255,.24); color: white; background: rgba(255,255,255,.10); font-size: 12px; }
+.assembly-list { display: grid; gap: 10px; }
+.assembly-card { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface-2); }
+.assembly-card h3 { margin-bottom: 3px; }
+.assembly-card p { margin-bottom: 0; font-size: 12px; }
+.recipe-heading { margin: 18px 0 10px; padding-top: 15px; border-top: 1px solid var(--line); }
+.assembly-item-row { margin-bottom: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); }
+.remove-assembly-item { margin-top: 8px; border: 0; padding: 0; color: var(--danger); background: transparent; font-size: 12px; font-weight: 800; }
+.bom-preview { display: grid; gap: 7px; margin-top: 10px; }
+.bom-line { display: flex; justify-content: space-between; gap: 12px; padding: 9px 10px; border-radius: 10px; background: rgba(255,255,255,.72); }
+.bom-line span, .bom-line strong { font-size: 12px; }
+.bom-line.shortage { border: 1px solid #e4a4a4; color: #7b2020; background: #fff0f0; }
+.help-guide { display: grid; gap: 9px; }
+.help-guide details { border: 1px solid var(--line); border-radius: 13px; background: var(--surface-2); }
+.help-guide summary { padding: 13px 14px; font-weight: 800; cursor: pointer; }
+.help-guide p { margin: 0; padding: 0 14px 14px; font-size: 13px; }
+.part-heading-with-photo { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.part-photo-thumb { width: 48px; height: 48px; flex: 0 0 48px; border: 1px solid var(--line); border-radius: 12px; object-fit: cover; background: var(--surface-2); }
+.camera-panel { grid-column: 1 / -1; padding: 13px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface-2); }
+.camera-panel h3 { margin-bottom: 4px; }
+.camera-panel p { margin-bottom: 10px; font-size: 12px; }
+.camera-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.part-photo-preview { overflow: hidden; margin-top: 11px; border: 1px solid var(--line); border-radius: 14px; background: white; }
+.part-photo-preview img { display: block; width: 100%; max-height: 230px; object-fit: contain; }
+.part-photo-placeholder { display: grid; place-items: center; min-height: 120px; padding: 18px; color: var(--muted); text-align: center; font-size: 12px; }
+.part-scan-status { margin-top: 10px; padding: 10px 11px; border-radius: 11px; color: #2c3b4d; background: #edf4f8; font-size: 12px; line-height: 1.4; }
+.part-scan-status.success { color: #145942; background: #e9f7f1; }
+.part-scan-status.warning { color: #785018; background: #fff5df; }
+.detected-label-text { margin-top: 8px; }
+.detected-label-text pre { max-height: 150px; overflow: auto; white-space: pre-wrap; font-size: 11px; }
+
+
+.quick-count-stack { display: grid; gap: 8px; margin-top: 13px; padding-top: 13px; border-top: 1px solid var(--line); }
+.quick-count-row { display: grid; grid-template-columns: minmax(0,1fr) 94px minmax(0,1fr); gap: 8px; align-items: stretch; }
+.quick-count-btn { min-height: 45px; border: 1px solid var(--line); border-radius: 12px; padding: 7px 8px; font-size: 11px; font-weight: 900; }
+.quick-count-btn.add { color: white; border-color: var(--success); background: var(--success); }
+.quick-count-btn.remove { color: white; border-color: var(--danger); background: var(--danger); }
+.quick-count-label { display: grid; place-items: center; min-width: 82px; padding: 4px 6px; text-align: center; }
+.quick-count-label span { color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.quick-count-label strong { display: block; font-size: 11px; }
+
+.history-tabs { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 7px; margin-bottom: 8px; }
+.history-tab { min-height: 43px; border: 1px solid var(--line); border-radius: 12px; padding: 7px 5px; color: var(--muted); background: var(--surface); font-size: 11px; font-weight: 900; }
+.history-tab span { display: block; margin-top: 2px; font-size: 10px; font-weight: 700; opacity: .82; }
+.history-tab.active { color: white; border-color: var(--brand); background: var(--brand); }
+.history-help { margin: 0 0 12px; font-size: 11px; }
+.history-list { display: grid; gap: 11px; }
+.history-part-group, .history-date-group { overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.history-part-group > summary, .history-date-group > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; cursor: pointer; }
+.history-part-group > summary::-webkit-details-marker, .history-date-group > summary::-webkit-details-marker { display: none; }
+.history-part-group > summary { min-height: 58px; padding: 13px 15px; font-weight: 900; }
+.history-part-group > summary::after, .history-date-group > summary::after { content: "›"; color: var(--muted); font-size: 22px; line-height: 1; transform: rotate(0deg); transition: transform .15s ease; }
+.history-part-group[open] > summary::after, .history-date-group[open] > summary::after { transform: rotate(90deg); }
+.history-folder-title { min-width: 0; }
+.history-folder-title strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
+.history-folder-title small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 700; }
+.history-folder-body { display: grid; gap: 9px; padding: 0 10px 10px; border-top: 1px solid var(--line); background: var(--surface-2); }
+.history-date-group { margin-top: 10px; border-radius: 12px; }
+.history-date-group > summary { min-height: 47px; padding: 10px 12px; font-size: 12px; font-weight: 900; }
+.history-date-group > summary::after { font-size: 18px; }
+.history-date-body { display: grid; gap: 8px; padding: 0 8px 8px; border-top: 1px solid var(--line); background: #fbfcfd; }
+.history-item { grid-template-columns: auto minmax(0,1fr) auto; margin-top: 8px; padding: 11px; border-radius: 12px; box-shadow: none; }
+.history-item p { word-break: break-word; }
+.history-time { min-width: 62px; }
+.history-category { display: inline-flex; margin-top: 5px; border-radius: 999px; padding: 3px 7px; color: var(--muted); background: var(--surface-2); font-size: 9px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
+.history-empty-filter { padding: 28px 18px; border: 1px dashed var(--line); border-radius: 15px; text-align: center; color: var(--muted); background: rgba(255,255,255,.55); font-size: 13px; }
+
+
+.work-photo-intro { margin-bottom: 13px; padding: 13px 14px; border: 1px solid #cfe0e9; border-radius: 15px; color: #294156; background: #edf6fa; font-size: 12px; line-height: 1.45; }
+.work-photo-intro strong { color: var(--ink); }
+.photo-toolbar { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; margin-bottom: 14px; }
+.photo-summary-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; margin-bottom: 13px; }
+.photo-summary { padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.photo-summary span { display: block; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.photo-summary strong { font-size: 20px; }
+.photo-folder-list { display: grid; gap: 11px; }
+.photo-part-group, .photo-date-group { overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
+.photo-part-group > summary, .photo-date-group > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; list-style: none; cursor: pointer; }
+.photo-part-group > summary::-webkit-details-marker, .photo-date-group > summary::-webkit-details-marker { display: none; }
+.photo-part-group > summary { min-height: 58px; padding: 13px 15px; font-weight: 900; }
+.photo-date-group { margin-top: 9px; border-radius: 12px; }
+.photo-date-group > summary { min-height: 46px; padding: 10px 12px; font-size: 12px; font-weight: 900; }
+.photo-part-group > summary::after, .photo-date-group > summary::after { content: "›"; color: var(--muted); font-size: 21px; transform: rotate(0); transition: transform .15s ease; }
+.photo-part-group[open] > summary::after, .photo-date-group[open] > summary::after { transform: rotate(90deg); }
+.photo-folder-body { display: grid; gap: 9px; padding: 0 10px 10px; border-top: 1px solid var(--line); background: var(--surface-2); }
+.photo-date-body { display: grid; gap: 9px; padding: 9px; border-top: 1px solid var(--line); background: #fbfcfd; }
+.photo-set-card { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: white; }
+.photo-set-main { padding: 13px; }
+.photo-set-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.photo-set-head h3 { margin-bottom: 2px; font-size: 16px; }
+.photo-progress { min-width: 64px; border-radius: 999px; padding: 6px 9px; color: white; background: var(--brand-2); text-align: center; font-size: 11px; font-weight: 900; }
+.photo-progress.complete { background: var(--success); }
+.photo-thumb-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 5px; margin-top: 11px; }
+.photo-thumb { position: relative; overflow: hidden; aspect-ratio: 1; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.photo-thumb span { position: absolute; left: 3px; right: 3px; bottom: 3px; overflow: hidden; border-radius: 5px; padding: 2px 3px; color: white; background: rgba(9,18,28,.74); font-size: 7px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.photo-set-actions { display: grid; grid-template-columns: repeat(4,1fr); border-top: 1px solid var(--line); }
+.photo-set-actions button { min-height: 45px; border: 0; border-right: 1px solid var(--line); padding: 5px; color: var(--ink); background: #fbfcfd; font-size: 10px; font-weight: 900; }
+.photo-set-actions button:last-child { border-right: 0; }
+.photo-stage-list { display: grid; gap: 9px; margin-top: 12px; }
+.photo-stage-item { display: grid; grid-template-columns: 72px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: white; }
+.photo-stage-item img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; background: var(--surface-2); }
+.photo-stage-item h3 { margin-bottom: 2px; font-size: 13px; }
+.photo-stage-item p { margin-bottom: 0; font-size: 10px; }
+.photo-stage-actions { display: grid; gap: 6px; }
+.photo-stage-actions button { min-height: 34px; padding: 5px 8px; font-size: 10px; }
+.photo-private-badge { display: inline-flex; margin-top: 6px; border-radius: 999px; padding: 4px 8px; color: #145942; background: #e8f7f0; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+.photo-capture-status { margin-top: 10px; padding: 11px; border-radius: 12px; color: #294156; background: #edf6fa; font-size: 12px; }
+.photo-email-note { margin-top: 9px; font-size: 11px; }
+
+@media (max-width: 430px) {
+  .quick-count-row { grid-template-columns: 1fr 82px 1fr; }
+  .quick-count-btn { padding: 6px 4px; font-size: 10px; }
+  .history-tabs { gap: 5px; }
+  .history-tab { padding-inline: 3px; font-size: 10px; }
+}
+
+@media (max-width: 520px) {
+  .summary-scope { grid-template-columns: 1fr; align-items: stretch; }
+  .summary-scope-note { max-width: none; padding: 0; text-align: left; }
+  .summary-grid { grid-template-columns: repeat(2,1fr); }
+  .assembly-card { grid-template-columns: 1fr; }
+  .assembly-card .button-row { width: 100%; }
+  .bom-line { flex-direction: column; gap: 3px; }
+}
+
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d141c;
+  --surface: #15202b;
+  --surface-2: #1b2835;
+  --ink: #edf4f8;
+  --muted: #a1afbd;
+  --line: #31404e;
+  --brand: #09121c;
+  --brand-2: #3c6a94;
+  --accent: #efb44f;
+  --success: #2f9a75;
+  --danger: #d45555;
+  --shadow: 0 12px 30px rgba(0,0,0,.34);
+}
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] html { background: var(--bg); }
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] .summary-scope select {
+  color: var(--ink);
+  border-color: var(--line);
+  background: #101923;
+}
+:root[data-theme="dark"] option { color: var(--ink); background: #101923; }
+:root[data-theme="dark"] .folder-empty,
+:root[data-theme="dark"] .part-photo-preview,
+:root[data-theme="dark"] .modal-footer,
+:root[data-theme="dark"] .history-date-body,
+:root[data-theme="dark"] .photo-date-body,
+:root[data-theme="dark"] .photo-set-card,
+:root[data-theme="dark"] .photo-stage-item {
+  background: var(--surface);
+}
+:root[data-theme="dark"] .part-actions button,
+:root[data-theme="dark"] .photo-set-actions button {
+  color: var(--ink);
+  background: #111b25;
+}
+:root[data-theme="dark"] .inventory-hint,
+:root[data-theme="dark"] .work-photo-intro,
+:root[data-theme="dark"] .photo-capture-status,
+:root[data-theme="dark"] .scan-status,
+:root[data-theme="dark"] .part-scan-status {
+  color: #b9ccda;
+  border-color: #304b5c;
+  background: #132531;
+}
+:root[data-theme="dark"] .work-photo-intro strong { color: var(--ink); }
+:root[data-theme="dark"] .part-scan-status.success,
+:root[data-theme="dark"] .photo-private-badge {
+  color: #8ee0bf;
+  background: #143329;
+}
+:root[data-theme="dark"] .part-scan-status.warning {
+  color: #ffd38c;
+  background: #3a2c14;
+}
+:root[data-theme="dark"] .bom-line { background: rgba(255,255,255,.05); }
+:root[data-theme="dark"] .bom-line.shortage {
+  color: #ffb1b1;
+  border-color: #754545;
+  background: #331b1b;
+}
+:root[data-theme="dark"] .empty-state,
+:root[data-theme="dark"] .history-empty-filter {
+  background: rgba(255,255,255,.035);
+}
+:root[data-theme="dark"] .danger-zone { border-color: #704646; }
+:root[data-theme="dark"] .scan-preview { background: #0f1821; }
+
+
+.photo-heading-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.import-photo-list { display: grid; gap: 10px; }
+.import-photo-row { display: grid; grid-template-columns: 74px minmax(0,1fr); gap: 11px; padding: 10px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+.import-photo-row img { width: 74px; height: 74px; border-radius: 10px; object-fit: cover; background: var(--surface-2); }
+.import-photo-preview { width: 74px; height: 74px; border-radius: 10px; overflow: hidden; background: var(--surface-2); }
+.import-photo-preview img { width: 100%; height: 100%; border-radius: 0; }
+.import-preview-placeholder { display: grid; width: 100%; height: 100%; place-items: center; padding: 7px; color: var(--muted); font-size: 9px; font-weight: 800; line-height: 1.2; text-align: center; }
+.import-photo-row h3 { overflow: hidden; margin-bottom: 3px; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.import-photo-row .part-meta { margin-bottom: 7px; }
+.import-photo-fields { display: grid; grid-template-columns: minmax(0,1fr); gap: 7px; }
+.import-progress { margin-top: 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); font-size: 12px; font-weight: 800; }
+.import-progress strong { display: block; margin-bottom: 4px; }
+.import-warning { padding: 10px 12px; border-radius: 12px; color: #72501f; background: #fff1d5; font-size: 11px; line-height: 1.4; }
+:root[data-theme="dark"] .import-warning { color: #ffd38c; background: #3a2c14; }
+@media (max-width: 430px) { .photo-heading-actions { justify-content: stretch; } .photo-heading-actions button { flex: 1; } }
+
+
+.photo-storage-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.photo-storage-stat { padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+.photo-storage-stat span { display: block; color: var(--muted); font-size: 9px; font-weight: 900; text-transform: uppercase; }
+.photo-storage-stat strong { display: block; margin-top: 3px; font-size: 18px; }
+.photo-storage-location { overflow-wrap: anywhere; }
+.storage-good { color: var(--success); }
+.storage-warning { color: #9b6500; }
+:root[data-theme="dark"] .storage-warning { color: #ffd38c; }
+
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">SHOP INVENTORY</div>
+      <div class="brand-title-row">
+        <h1>Accutek Inventory</h1>
+        <span class="app-version" aria-label="App version">v0.6.2</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" id="helpBtn" class="icon-btn" aria-label="Open help guide">Help</button>
+      <button type="button" id="installBtn" class="icon-btn hidden" aria-label="Install app">Install</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <section id="dashboardView" class="view active">
+      <div class="summary-scope">
+        <label>
+          <span>Totals shown for</span>
+          <select id="summaryScopeSelect" aria-label="Choose which part totals to display"></select>
+        </label>
+        <div id="summaryScopeNote" class="summary-scope-note">All inventory combined</div>
+      </div>
+      <div class="summary-grid">
+        <article class="summary-card"><span id="partCountLabel">Hardware</span><strong id="partCount">0</strong></article>
+        <article class="summary-card"><span>Unopened boxes</span><strong id="boxCount">0</strong></article>
+        <article class="summary-card"><span>Open / loose</span><strong id="tableCount">0</strong></article>
+        <article class="summary-card"><span>Estimated pieces</span><strong id="pieceCount">0</strong></article>
+      </div>
+
+      <div class="inventory-hint">Create a parent folder for each main part, then add its child hardware. Use <strong>Set Counts</strong> to enter unopened boxes and your best open-box or loose-piece estimate.</div>
+      <div class="toolbar">
+        <label class="search-wrap">
+          <span>Search</span>
+          <input id="searchInput" type="search" placeholder="Folder or hardware name" autocomplete="off" />
+        </label>
+        <button type="button" id="addFolderBtn" class="secondary">+ Folder</button>
+      </div>
+
+      <div id="partsList" class="parts-list"></div>
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">▦</div>
+        <h2>Add your first parent folder</h2>
+        <p>Create the main part folder first. You will add its child hardware from inside the folder.</p>
+        <button type="button" id="emptyAddBtn" class="primary">Add Folder</button>
+      </div>
+    </section>
+
+    <section id="receiveView" class="view">
+      <div class="section-heading">
+        <div><div class="eyebrow">INCOMING MATERIAL</div><h2>Receive inventory</h2></div>
+      </div>
+
+      <article class="action-card full-skid-card">
+        <div class="action-icon">▤</div>
+        <div class="action-copy">
+          <h3>Receive Full Skid</h3>
+          <p>Use the saved box count for a normal full skid.</p>
+        </div>
+        <button type="button" id="fullSkidBtn" class="primary">Receive</button>
+      </article>
+
+      <article class="action-card custom-card">
+        <div class="action-icon">✦</div>
+        <div class="action-copy">
+          <h3>Custom Receipt</h3>
+          <p>Partial skids, mixed skids, custom box counts, or open/loose pieces.</p>
+        </div>
+        <button type="button" id="customReceiptBtn" class="primary">Open</button>
+      </article>
+
+      <article class="action-card scan-card">
+        <div class="action-icon">▣</div>
+        <div class="action-copy">
+          <h3>Scan Skid Label</h3>
+          <p>Take a photo and prefill the part and quantity for confirmation.</p>
+        </div>
+        <button type="button" id="scanReceiptBtn" class="secondary">Camera</button>
+      </article>
+
+      <input id="labelCameraInput" class="hidden" type="file" accept="image/*" capture="environment" />
+    </section>
+
+
+    <section id="photosView" class="view">
+      <div class="section-heading">
+        <div><div class="eyebrow">WORK DOCUMENTATION</div><h2>Work Photos</h2></div>
+        <div class="photo-heading-actions">
+          <button type="button" id="photoStorageBtn" class="secondary small">▤ Storage</button>
+          <button type="button" id="importPhotosBtn" class="secondary small">⇧ Import Photos</button>
+          <button type="button" id="newPhotoSetBtn" class="primary small">+ Photo Set</button>
+        </div>
+      </div>
+
+      <div class="work-photo-intro">
+        <strong>Visible work folder:</strong> each work photo is stored once under <b>Downloads/Accutek Inventory/Work Photos</b>. It stays separate from Camera/DCIM and survives app removal. Tap Storage to review size, missing files, or older private photos that need migration.
+      </div>
+
+      <div class="photo-summary-grid">
+        <article class="photo-summary"><span>Photo sets</span><strong id="photoSetCount">0</strong></article>
+        <article class="photo-summary"><span>Saved photos</span><strong id="workPhotoCount">0</strong></article>
+        <article class="photo-summary"><span>Target per set</span><strong id="photoTargetCount">5</strong></article>
+      </div>
+
+      <div class="photo-toolbar">
+        <label class="search-wrap">
+          <span>Filter by part</span>
+          <input id="photoSearchInput" type="search" placeholder="Part name or job number" autocomplete="off" />
+        </label>
+        <button type="button" id="exportAllPhotosBtn" class="secondary small">Open Folder</button>
+      </div>
+
+      <div id="photoSetList" class="photo-folder-list"></div>
+      <div id="photosEmpty" class="empty-state compact">
+        <div class="empty-icon">▣</div>
+        <h2>No work photos yet</h2>
+        <p>Create a photo set, take new process photos, or import existing work photos from your gallery.</p>
+        <button type="button" id="emptyPhotoSetBtn" class="primary">Create Photo Set</button>
+      </div>
+
+      <input id="workPhotoCameraInput" class="hidden" type="file" accept="image/*" capture="environment" />
+      <input id="workPhotoImportInput" class="hidden" type="file" accept="image/*" multiple />
+    </section>
+
+    <section id="historyView" class="view">
+      <div class="section-heading">
+        <div><div class="eyebrow">AUDIT TRAIL</div><h2>History</h2></div>
+        <button type="button" id="exportCsvBtn" class="secondary small">Export CSV</button>
+      </div>
+      <div id="historyTabs" class="history-tabs" role="tablist" aria-label="History filters">
+        <button type="button" class="history-tab active" data-history-filter="all">All<span id="historyCountAll">0</span></button>
+        <button type="button" class="history-tab" data-history-filter="added">Added<span id="historyCountAdded">0</span></button>
+        <button type="button" class="history-tab" data-history-filter="removed">Removed<span id="historyCountRemoved">0</span></button>
+        <button type="button" class="history-tab" data-history-filter="changed">Changes<span id="historyCountChanged">0</span></button>
+      </div>
+      <p class="history-help">Choose a tab, then open a part folder and date. Every record keeps its local date and time.</p>
+      <div id="historyList" class="history-list"></div>
+      <div id="historyEmpty" class="empty-state compact"><h2>No activity yet</h2><p>Receipts, box/skid changes, count updates, use, and corrections will appear here.</p></div>
+    </section>
+
+    <section id="settingsView" class="view">
+      <div class="section-heading"><div><div class="eyebrow">DATA & SETUP</div><h2>Settings</h2></div></div>
+      <article class="settings-card">
+        <h3>Appearance</h3>
+        <p>Use light mode, dark mode, or follow your phone automatically.</p>
+        <div class="field">
+          <label>Color mode</label>
+          <select id="appearanceSelect">
+            <option value="system">Use phone setting</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+      </article>
+      <article class="settings-card">
+        <h3>Assembly recipes</h3>
+        <p>Create hardware-per-finished-unit recipes, then record completed assemblies and subtract their parts from the table.</p>
+        <div class="button-row">
+          <button type="button" id="manageAssembliesBtn" class="secondary">Manage Recipes</button>
+          <button type="button" id="recordAssembliesBtn" class="primary">Record Assemblies</button>
+        </div>
+      </article>
+      <article class="settings-card">
+        <h3>Work photo email</h3>
+        <p>Set the company email used when you tap Email Set. The email app opens with the photos attached so you can review before sending.</p>
+        <div class="form-grid">
+          <div class="field full"><label>Company email</label><input id="companyEmailInput" type="email" autocomplete="email" placeholder="example@company.com"></div>
+          <div class="field"><label>Photos expected per set</label><input id="photoTargetInput" type="number" min="1" max="20" step="1" value="5"></div>
+          <div class="field"><label>Default subject prefix</label><input id="photoSubjectInput" maxlength="60" value="Accutek work photos"></div>
+        </div>
+      </article>
+      <article class="settings-card">
+        <h3>Help guide</h3>
+        <p>Read instructions for quick skids, adjustments, organized History, label photos, assemblies, undo, and backups.</p>
+        <button type="button" id="settingsHelpBtn" class="secondary wide">Open Help Guide</button>
+      </article>
+      <article class="settings-card">
+        <h3>Backup</h3>
+        <p>Download inventory, history, photo-set records, and settings as a backup file, or restore a previous backup. Full-size work photos live separately in the visible Work Photos folder.</p>
+        <div class="button-row">
+          <button type="button" id="backupBtn" class="secondary">Download Backup</button>
+          <label class="secondary file-label">Restore<input id="restoreInput" type="file" accept="application/json" /></label>
+        </div>
+      </article>
+      <article class="settings-card danger-zone">
+        <h3>Reset app</h3>
+        <p>Erase the app’s inventory records and preview cache. Visible master work-photo files remain in Downloads unless you delete them directly from Photos.</p>
+        <button type="button" id="resetBtn" class="danger">Erase Everything</button>
+      </article>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-btn active" data-view="dashboardView"><span>▦</span>Inventory</button>
+    <button class="nav-btn" data-view="receiveView"><span>＋</span>Receive</button>
+    <button class="nav-btn" data-view="photosView"><span>▣</span>Photos</button>
+    <button class="nav-btn" data-view="historyView"><span>≡</span>History</button>
+    <button class="nav-btn" data-view="settingsView"><span>⚙</span>Settings</button>
+  </nav>
+
+  <dialog id="modal" class="modal">
+    <div class="modal-shell">
+      <div class="modal-header"><div><div id="modalEyebrow" class="eyebrow"></div><h2 id="modalTitle"></h2></div><button id="closeModalBtn" class="close-btn" aria-label="Close">×</button></div>
+      <div id="modalBody" class="modal-body"></div>
+      <div id="modalFooter" class="modal-footer"></div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script>
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'skidcount_state_v1';
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  const nowIso = () => new Date().toISOString();
+  const clampNum = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+  const fmt = (value) => Math.round(Number(value || 0)).toLocaleString();
+  const esc = (value = '') => String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+
+  const defaultState = () => ({
+    folders: [],
+    parts: [],
+    assemblies: [],
+    transactions: [],
+    workPhotoSets: [],
+    workPhotos: [],
+    summaryScope: 'all',
+    appearance: 'system',
+    photoSettings: {
+      companyEmail: '',
+      targetPerSet: 5,
+      subjectPrefix: 'Accutek work photos',
+      lastBackupAt: '',
+      lastFolderOpenedAt: ''
+    },
+    version: 10
+  });
+  let state = loadState();
+  let installPrompt = null;
+  let pendingScanPhoto = '';
+  let historyFilter = 'all';
+  let pendingWorkPhotoCapture = null;
+  let pendingPhotoImportSetup = null;
+  let openFolderIds = new Set();
+  const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function resolvedAppearance() {
+    if (state.appearance === 'dark') return 'dark';
+    if (state.appearance === 'light') return 'light';
+    return systemThemeQuery.matches ? 'dark' : 'light';
+  }
+
+  function applyAppearance() {
+    const resolved = resolvedAppearance();
+    document.documentElement.dataset.theme = resolved;
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.content = resolved === 'dark' ? '#09121c' : '#132235';
+    if (els?.appearanceSelect) els.appearanceSelect.value = state.appearance || 'system';
+  }
+
+
+  const els = {
+    partCount: $('#partCount'), partCountLabel: $('#partCountLabel'), boxCount: $('#boxCount'), tableCount: $('#tableCount'), pieceCount: $('#pieceCount'),
+    summaryScopeSelect: $('#summaryScopeSelect'), summaryScopeNote: $('#summaryScopeNote'),
+    partsList: $('#partsList'), emptyState: $('#emptyState'), searchInput: $('#searchInput'),
+    historyList: $('#historyList'), historyEmpty: $('#historyEmpty'),
+    photoSetList: $('#photoSetList'), photosEmpty: $('#photosEmpty'),
+    photoSetCount: $('#photoSetCount'), workPhotoCount: $('#workPhotoCount'),
+    photoTargetCount: $('#photoTargetCount'), photoSearchInput: $('#photoSearchInput'),
+    photoStorageBtn: $('#photoStorageBtn'),
+    workPhotoImportInput: $('#workPhotoImportInput'),
+    workPhotoCameraInput: $('#workPhotoCameraInput'),
+    appearanceSelect: $('#appearanceSelect'),
+    companyEmailInput: $('#companyEmailInput'), photoTargetInput: $('#photoTargetInput'),
+    photoSubjectInput: $('#photoSubjectInput'),
+    modal: $('#modal'), modalTitle: $('#modalTitle'), modalEyebrow: $('#modalEyebrow'), modalBody: $('#modalBody'), modalFooter: $('#modalFooter'),
+    toast: $('#toast'), labelCameraInput: $('#labelCameraInput'), installBtn: $('#installBtn')
+  };
+
+  function normalizeState(parsed) {
+    if (!parsed || !Array.isArray(parsed.parts) || !Array.isArray(parsed.transactions)) return defaultState();
+    if (!Array.isArray(parsed.folders)) parsed.folders = [];
+    if (!Array.isArray(parsed.assemblies)) parsed.assemblies = [];
+    if (!Array.isArray(parsed.workPhotoSets)) parsed.workPhotoSets = [];
+    if (!Array.isArray(parsed.workPhotos)) parsed.workPhotos = [];
+    if (!['system','light','dark'].includes(parsed.appearance)) parsed.appearance = 'system';
+    if (!parsed.photoSettings || typeof parsed.photoSettings !== 'object') parsed.photoSettings = {};
+    parsed.photoSettings.companyEmail = String(parsed.photoSettings.companyEmail || '');
+    parsed.photoSettings.targetPerSet = Math.max(1, Math.min(20, clampNum(parsed.photoSettings.targetPerSet, 5)));
+    parsed.photoSettings.subjectPrefix = String(parsed.photoSettings.subjectPrefix || 'Accutek work photos');
+    parsed.photoSettings.lastBackupAt = String(parsed.photoSettings.lastBackupAt || '');
+    parsed.photoSettings.lastFolderOpenedAt = String(parsed.photoSettings.lastFolderOpenedAt || '');
+    parsed.workPhotoSets.forEach(set => {
+      set.id = set.id || uid();
+      set.partId = String(set.partId || '');
+      set.partName = String(set.partName || parsed.folders.find(f => f.id === set.partId)?.name || parsed.parts.find(p => p.id === set.partId)?.name || 'Unknown Part');
+      set.jobNo = String(set.jobNo || '');
+      set.note = String(set.note || '');
+      set.createdAt = Number.isNaN(new Date(set.createdAt).getTime()) ? nowIso() : set.createdAt;
+      set.closed = Boolean(set.closed);
+    });
+    parsed.workPhotos.forEach(photo => {
+      photo.id = photo.id || uid();
+      photo.setId = String(photo.setId || '');
+      photo.partId = String(photo.partId || '');
+      photo.partName = String(photo.partName || parsed.folders.find(f => f.id === photo.partId)?.name || parsed.parts.find(p => p.id === photo.partId)?.name || 'Unknown Part');
+      photo.stage = String(photo.stage || 'Process photo');
+      photo.notes = String(photo.notes || '');
+      photo.createdAt = Number.isNaN(new Date(photo.createdAt).getTime()) ? nowIso() : photo.createdAt;
+      photo.path = String(photo.path || '');
+      photo.filename = String(photo.filename || '');
+      photo.thumbnail = String(photo.thumbnail || photo.browserDataUrl || '');
+      photo.browserDataUrl = String(photo.browserDataUrl || '');
+      photo.privateStorage = Boolean(photo.privateStorage);
+      photo.persistentStorage = Boolean(photo.persistentStorage || (photo.path && String(photo.path).startsWith('content://')));
+      photo.fileSizeBytes = Math.max(0, clampNum(photo.fileSizeBytes));
+      photo.imported = Boolean(photo.imported);
+      photo.sourceName = String(photo.sourceName || '');
+      photo.importKey = String(photo.importKey || '');
+    });
+    if (!parsed.assemblies.length) {
+      const legacyItems = parsed.parts
+        .filter(p => clampNum(p.usagePerAssembly) > 0)
+        .map(p => ({ partId: p.id, qty: clampNum(p.usagePerAssembly) }));
+      if (legacyItems.length) parsed.assemblies.push({ id: uid(), name: 'Default Assembly', items: legacyItems, note: 'Migrated from the original per-part assembly settings.' });
+    }
+    parsed.folders.forEach(folder => {
+      folder.id = folder.id || uid();
+      folder.name = String(folder.name || 'Unnamed Folder');
+      folder.note = String(folder.note || '');
+      folder.createdAt = Number.isNaN(new Date(folder.createdAt).getTime()) ? nowIso() : folder.createdAt;
+    });
+    const validFolderIds = new Set(parsed.folders.map(folder => folder.id));
+    const needsUnfiled = parsed.parts.some(part => !part.folderId || !validFolderIds.has(part.folderId));
+    let unfiledFolder = parsed.folders.find(folder => folder.systemKey === 'unfiled');
+    if (needsUnfiled && !unfiledFolder) {
+      unfiledFolder = { id: uid(), name: 'Unfiled Hardware', note: 'Move these items into a parent folder by editing the hardware.', createdAt: nowIso(), systemKey: 'unfiled' };
+      parsed.folders.push(unfiledFolder);
+      validFolderIds.add(unfiledFolder.id);
+    }
+    parsed.parts.forEach(p => {
+      p.photo = typeof p.photo === 'string' ? p.photo : '';
+      p.name = String(p.name || 'Unnamed Hardware');
+      p.folderId = validFolderIds.has(p.folderId) ? p.folderId : (unfiledFolder?.id || '');
+      p.boxQty = Math.max(1, clampNum(p.boxQty, 1));
+      p.boxesPerSkid = Math.max(1, clampNum(p.boxesPerSkid, 1));
+      p.unopenedBoxes = Math.max(0, clampNum(p.unopenedBoxes));
+      // v0.5 migrates the old separate loose-storage count into one simple
+      // open/loose estimate. This keeps every existing piece in the total.
+      p.tableQty = Math.max(0, clampNum(p.tableQty) + clampNum(p.storageLoose));
+      p.storageLoose = 0;
+      p.minStock = Math.max(0, clampNum(p.minStock));
+    });
+    parsed.transactions.forEach(tx => {
+      tx.id = tx.id || uid();
+      tx.type = String(tx.type || 'change');
+      tx.title = String(tx.title || 'Inventory change');
+      tx.detail = String(tx.detail || '');
+      tx.deltas = Array.isArray(tx.deltas) ? tx.deltas : [];
+      tx.deltas.forEach(delta => {
+        if (delta && delta.field === 'storageLoose') delta.field = 'tableQty';
+      });
+      tx.createdAt = Number.isNaN(new Date(tx.createdAt).getTime()) ? nowIso() : tx.createdAt;
+      tx.undone = Boolean(tx.undone);
+      if (!Array.isArray(tx.partRefs)) {
+        const ids = [...new Set([
+          ...(Array.isArray(tx.partIds) ? tx.partIds : []),
+          ...tx.deltas.map(d => d.partId).filter(Boolean)
+        ])];
+        tx.partRefs = ids.map((id, index) => ({
+          id,
+          name: parsed.parts.find(p => p.id === id)?.name || tx.partNames?.[index] || ''
+        })).filter(ref => ref.id || ref.name);
+      }
+    });
+    parsed.summaryScope = String(parsed.summaryScope || 'all');
+    const summaryScopeValid = parsed.summaryScope === 'all'
+      || (parsed.summaryScope.startsWith('folder:') && parsed.folders.some(folder => folder.id === parsed.summaryScope.slice(7)))
+      || (parsed.summaryScope.startsWith('part:') && parsed.parts.some(part => part.id === parsed.summaryScope.slice(5)));
+    if (!summaryScopeValid) parsed.summaryScope = 'all';
+    parsed.version = 10;
+    return parsed;
+  }
+
+  function loadState() {
+    try {
+      const nativeState = window.SkidCountNative?.getState?.() || '';
+      const stored = nativeState || localStorage.getItem(STORAGE_KEY);
+      const parsed = JSON.parse(stored);
+      return normalizeState(parsed);
+    } catch { return defaultState(); }
+  }
+
+  function persistState() {
+    const json = JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY, json);
+    try { window.SkidCountNative?.syncState?.(json); } catch { /* Browser test mode. */ }
+  }
+
+  function saveState() {
+    persistState();
+    renderAll();
+  }
+
+  function toast(message) {
+    els.toast.textContent = message;
+    els.toast.classList.add('show');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => els.toast.classList.remove('show'), 2500);
+  }
+
+  function partTotal(part) {
+    return (part.unopenedBoxes * part.boxQty) + part.tableQty;
+  }
+
+  function makeDelta(partId, field, delta) { return { partId, field, delta }; }
+
+  function applyDeltas(deltas, direction = 1) {
+    for (const delta of deltas) {
+      const part = state.parts.find(p => p.id === delta.partId);
+      if (part) part[delta.field] = clampNum(part[delta.field]) + (clampNum(delta.delta) * direction);
+    }
+  }
+
+  function addTransaction(type, title, detail, deltas = [], extra = {}) {
+    const txExtra = { ...extra };
+    const explicitRefs = Array.isArray(txExtra.partRefs) ? txExtra.partRefs : [];
+    delete txExtra.partRefs;
+    const deltaIds = deltas.map(d => d.partId).filter(Boolean);
+    const explicitIds = Array.isArray(txExtra.partIds) ? txExtra.partIds : [];
+    const ids = [...new Set([...explicitIds, ...deltaIds, ...explicitRefs.map(ref => ref.id).filter(Boolean)])];
+    const refs = [];
+    for (const id of ids) {
+      const explicit = explicitRefs.find(ref => ref.id === id);
+      const part = state.parts.find(p => p.id === id);
+      refs.push({ id, name: explicit?.name || part?.name || '' });
+    }
+    for (const explicit of explicitRefs) {
+      if (!explicit.id && explicit.name && !refs.some(ref => ref.name === explicit.name)) refs.push({ id: '', name: explicit.name });
+    }
+    delete txExtra.partIds;
+    delete txExtra.partNames;
+    state.transactions.unshift({
+      id: uid(), type, title, detail, deltas, createdAt: nowIso(), undone: false,
+      partRefs: refs,
+      ...txExtra
+    });
+    if (state.transactions.length > 1000) state.transactions.length = 1000;
+  }
+
+  function summaryScopeOptions() {
+    const folders = state.folders.slice().sort((a,b) => {
+      if (a.systemKey === 'unfiled') return 1;
+      if (b.systemKey === 'unfiled') return -1;
+      return a.name.localeCompare(b.name);
+    });
+    const folderOptions = folders.map(folder => `<option value="folder:${esc(folder.id)}">${esc(folder.name)} — folder total</option>`).join('');
+    const partOptions = folders.flatMap(folder => state.parts
+      .filter(part => part.folderId === folder.id)
+      .sort((a,b) => a.name.localeCompare(b.name))
+      .map(part => `<option value="part:${esc(part.id)}">${esc(folder.name)} › ${esc(part.name)}</option>`)
+    ).join('');
+    return `<option value="all">All inventory</option>`
+      + (folderOptions ? `<optgroup label="Parent part folders">${folderOptions}</optgroup>` : '')
+      + (partOptions ? `<optgroup label="Individual hardware">${partOptions}</optgroup>` : '');
+  }
+
+  function selectedSummaryParts() {
+    const scope = String(state.summaryScope || 'all');
+    if (scope.startsWith('folder:')) {
+      const folderId = scope.slice(7);
+      return state.parts.filter(part => part.folderId === folderId);
+    }
+    if (scope.startsWith('part:')) {
+      const part = state.parts.find(item => item.id === scope.slice(5));
+      return part ? [part] : [];
+    }
+    return state.parts;
+  }
+
+  function summaryScopeDetails() {
+    const scope = String(state.summaryScope || 'all');
+    if (scope.startsWith('folder:')) {
+      const folder = state.folders.find(item => item.id === scope.slice(7));
+      if (folder) return { note: `${folder.name} folder only`, countLabel: 'Child hardware' };
+    }
+    if (scope.startsWith('part:')) {
+      const part = state.parts.find(item => item.id === scope.slice(5));
+      const folder = part ? folderForPart(part) : null;
+      if (part) return { note: folder ? `${folder.name} › ${part.name}` : part.name, countLabel: 'Selected hardware' };
+    }
+    return { note: 'All parent folders and hardware combined', countLabel: 'Hardware' };
+  }
+
+  function renderSummary() {
+    const current = String(state.summaryScope || 'all');
+    const valid = current === 'all'
+      || (current.startsWith('folder:') && state.folders.some(folder => folder.id === current.slice(7)))
+      || (current.startsWith('part:') && state.parts.some(part => part.id === current.slice(5)));
+    if (!valid) {
+      state.summaryScope = 'all';
+      persistState();
+    }
+    els.summaryScopeSelect.innerHTML = summaryScopeOptions();
+    els.summaryScopeSelect.value = state.summaryScope || 'all';
+    const scopedParts = selectedSummaryParts();
+    const boxes = scopedParts.reduce((sum, part) => sum + clampNum(part.unopenedBoxes), 0);
+    const openLoose = scopedParts.reduce((sum, part) => sum + clampNum(part.tableQty), 0);
+    const pieces = scopedParts.reduce((sum, part) => sum + partTotal(part), 0);
+    const details = summaryScopeDetails();
+    els.partCountLabel.textContent = details.countLabel;
+    els.summaryScopeNote.textContent = details.note;
+    els.partCount.textContent = fmt(scopedParts.length);
+    els.boxCount.textContent = fmt(boxes);
+    els.tableCount.textContent = fmt(openLoose);
+    els.pieceCount.textContent = fmt(pieces);
+  }
+
+  function renderAll() {
+    renderParts();
+    renderWorkPhotos();
+    renderHistory();
+    renderSummary();
+    applyAppearance();
+  }
+
+  function folderForPart(part) {
+    return state.folders.find(folder => folder.id === part.folderId) || null;
+  }
+
+  function ensureUnfiledFolder() {
+    let folder = state.folders.find(item => item.systemKey === 'unfiled');
+    if (!folder) {
+      folder = { id: uid(), name: 'Unfiled Hardware', note: 'Move these items into a parent folder by editing the hardware.', createdAt: nowIso(), systemKey: 'unfiled' };
+      state.folders.push(folder);
+    }
+    return folder;
+  }
+
+  function partCardHtml(p) {
+    const low = p.minStock > 0 && partTotal(p) <= p.minStock;
+    const action = (name, icon, label) => `<button type="button" data-action="${name}" data-part-id="${p.id}"><span>${icon}</span>${label}</button>`;
+    return `<article class="part-card" data-id="${p.id}">
+      <div class="part-main">
+        <div class="part-title-row">
+          <div class="part-heading-with-photo">
+            ${p.photo ? `<img class="part-photo-thumb" src="${p.photo}" alt="Label for ${esc(p.name)}">` : ''}
+            <div>
+              <h3>${esc(p.name)}</h3>
+              <div class="part-meta">${fmt(p.boxQty)} / box · ${fmt(p.boxesPerSkid)} boxes / full skid</div>
+            </div>
+          </div>
+          <div class="stock-total"><strong>${fmt(partTotal(p))}</strong><span>estimated pieces</span></div>
+        </div>
+        <div class="stock-breakdown">
+          <div class="stock-cell"><span>Unopened</span><strong>${fmt(p.unopenedBoxes)} boxes</strong></div>
+          <div class="stock-cell"><span>Open / loose estimate</span><strong>${fmt(p.tableQty)} pieces</strong></div>
+        </div>
+        <div class="quick-count-stack" aria-label="Quick box and skid adjustments">
+          <div class="quick-count-row">
+            <button type="button" class="quick-count-btn remove" data-action="remove-box" data-part-id="${p.id}">− 1 Box</button>
+            <div class="quick-count-label"><span>Unopened</span><strong>${fmt(p.unopenedBoxes)} boxes</strong></div>
+            <button type="button" class="quick-count-btn add" data-action="add-box" data-part-id="${p.id}">+ 1 Box</button>
+          </div>
+          <div class="quick-count-row">
+            <button type="button" class="quick-count-btn remove" data-action="remove-skid" data-part-id="${p.id}">− 1 Skid</button>
+            <div class="quick-count-label"><span>Full skid</span><strong>${fmt(p.boxesPerSkid)} boxes</strong></div>
+            <button type="button" class="quick-count-btn add" data-action="add-skid" data-part-id="${p.id}">+ 1 Skid</button>
+          </div>
+        </div>
+        ${low ? `<div class="low-stock">Low stock: at or below ${fmt(p.minStock)} pieces</div>` : ''}
+      </div>
+      <div class="part-actions">
+        ${action('use','−','Record Use')}
+        ${action('adjust','±','Set Counts')}
+        ${action('edit','✎','Edit Part')}
+      </div>
+    </article>`;
+  }
+
+  function renderParts() {
+    const q = els.searchInput.value.trim().toLowerCase();
+    const folders = state.folders.slice().sort((a,b) => {
+      if (a.systemKey === 'unfiled') return 1;
+      if (b.systemKey === 'unfiled') return -1;
+      return a.name.localeCompare(b.name);
+    });
+
+    const rendered = [];
+    folders.forEach((folder, index) => {
+      const allChildren = state.parts
+        .filter(part => part.folderId === folder.id)
+        .sort((a,b) => a.name.localeCompare(b.name));
+      const folderMatches = folder.name.toLowerCase().includes(q) || folder.note.toLowerCase().includes(q);
+      const visibleChildren = q && !folderMatches
+        ? allChildren.filter(part => part.name.toLowerCase().includes(q))
+        : allChildren;
+      if (q && !folderMatches && !visibleChildren.length) return;
+      const folderBoxes = allChildren.reduce((sum, part) => sum + clampNum(part.unopenedBoxes), 0);
+      const folderPieces = allChildren.reduce((sum, part) => sum + partTotal(part), 0);
+      const open = Boolean(q) || openFolderIds.has(folder.id) || (index === 0 && openFolderIds.size === 0);
+      const childHtml = visibleChildren.length
+        ? `<div class="folder-children">${visibleChildren.map(partCardHtml).join('')}</div>`
+        : `<div class="folder-empty"><p>No hardware has been added to this folder yet.</p><button type="button" class="primary small" data-folder-action="add-child" data-folder-id="${folder.id}">+ Add Hardware</button></div>`;
+      rendered.push(`<details class="part-folder" data-folder-id="${folder.id}" ${open ? 'open' : ''}>
+        <summary>
+          <span><span class="folder-title">${esc(folder.name)}</span>${folder.note ? `<span class="folder-note">${esc(folder.note)}</span>` : ''}</span>
+          <span class="folder-summary-meta"><span>${fmt(allChildren.length)} hardware</span><span>${fmt(folderBoxes)} boxes</span><span>${fmt(folderPieces)} pieces</span></span>
+        </summary>
+        <div class="folder-body">
+          <div class="folder-toolbar">
+            <button type="button" class="secondary small" data-folder-action="edit-folder" data-folder-id="${folder.id}">Edit Folder</button>
+            <button type="button" class="primary small" data-folder-action="add-child" data-folder-id="${folder.id}">+ Hardware</button>
+          </div>
+          ${childHtml}
+        </div>
+      </details>`);
+    });
+
+    els.partsList.innerHTML = rendered.length
+      ? rendered.join('')
+      : (state.folders.length ? `<div class="history-empty-filter">No folder or hardware matches “${esc(q)}”.</div>` : '');
+
+    $$('.part-folder', els.partsList).forEach(details => {
+      details.addEventListener('toggle', () => {
+        const id = details.dataset.folderId;
+        if (details.open) openFolderIds.add(id);
+        else openFolderIds.delete(id);
+      });
+    });
+
+    els.emptyState.classList.toggle('show', state.folders.length === 0);
+    els.partsList.classList.toggle('hidden', state.folders.length === 0);
+  }
+
+
+  function photoTarget() {
+    return Math.max(1, Math.min(20, clampNum(state.photoSettings?.targetPerSet, 5)));
+  }
+
+  function photosForSet(setId) {
+    return state.workPhotos
+      .filter(photo => photo.setId === setId)
+      .sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+  }
+
+  function photoSetLabel(set) {
+    return set.jobNo ? `${set.partName} · ${set.jobNo}` : set.partName;
+  }
+
+  function nextPhotoStage(set) {
+    const count = photosForSet(set.id).length;
+    const stages = standardPhotoStages();
+    return stages[Math.min(count, stages.length - 1)] || `Process photo ${count + 1}`;
+  }
+
+  function workPhotoThumbnail(photo) {
+    return photo.thumbnail || photo.browserDataUrl || '';
+  }
+
+  function renderWorkPhotos() {
+    if (!state.photoSettings) state.photoSettings = defaultState().photoSettings;
+    const q = (els.photoSearchInput?.value || '').trim().toLowerCase();
+    const sets = state.workPhotoSets
+      .filter(set => `${set.partName} ${set.jobNo} ${set.note}`.toLowerCase().includes(q))
+      .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const target = photoTarget();
+    els.photoSetCount.textContent = fmt(state.workPhotoSets.length);
+    els.workPhotoCount.textContent = fmt(state.workPhotos.length);
+    els.photoTargetCount.textContent = fmt(target);
+    if (els.companyEmailInput) els.companyEmailInput.value = state.photoSettings.companyEmail || '';
+    if (els.photoTargetInput) els.photoTargetInput.value = target;
+    if (els.photoSubjectInput) els.photoSubjectInput.value = state.photoSettings.subjectPrefix || 'Accutek work photos';
+
+    const byPart = new Map();
+    sets.forEach(set => {
+      const partKey = set.partId || `name:${set.partName.toLowerCase()}`;
+      if (!byPart.has(partKey)) byPart.set(partKey, { name: set.partName || 'Unknown Part', sets: [] });
+      byPart.get(partKey).sets.push(set);
+    });
+
+    const partGroups = [...byPart.values()].sort((a,b) => a.name.localeCompare(b.name));
+    els.photoSetList.innerHTML = partGroups.map((group, partIndex) => {
+      const byDate = new Map();
+      group.sets.forEach(set => {
+        const dateKey = localDateKey(set.createdAt);
+        if (!byDate.has(dateKey)) byDate.set(dateKey, []);
+        byDate.get(dateKey).push(set);
+      });
+
+      const dateFolders = [...byDate.entries()]
+        .sort((a,b) => b[0].localeCompare(a[0]))
+        .map(([dateKey, dateSets], dateIndex) => {
+          const cards = dateSets.map(set => {
+            const photos = photosForSet(set.id);
+            const complete = photos.length >= target;
+            const thumbs = photos.slice(0, target).map(photo => {
+              const src = workPhotoThumbnail(photo);
+              return `<button type="button" class="photo-thumb" data-photo-action="open-photo" data-photo-id="${photo.id}" aria-label="Open ${esc(photo.stage)}">
+                ${src ? `<img src="${src}" alt="${esc(photo.stage)}">` : ''}
+                <span>${esc(photo.stage.replace(/^\d+\s*-\s*/, ''))}</span>
+              </button>`;
+            }).join('');
+            const emptySlots = Array.from({length: Math.max(0, Math.min(target,5) - Math.min(photos.length,5))}, () => `<div class="photo-thumb"></div>`).join('');
+            const meta = [
+              set.jobNo && `Work reference ${set.jobNo}`,
+              new Date(set.createdAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}),
+              set.note
+            ].filter(Boolean).join(' · ');
+            return `<article class="photo-set-card" data-photo-set-id="${set.id}">
+              <div class="photo-set-main">
+                <div class="photo-set-head">
+                  <div>
+                    <h3>${esc(photoSetLabel(set))}</h3>
+                    <div class="part-meta">${esc(meta || 'Process photo set')}</div>
+                    <span class="photo-private-badge">${photos.some(photo=>photo.privateStorage && !photo.persistentStorage) ? "Migration needed" : "Visible work folder"}</span>
+                  </div>
+                  <div class="photo-progress ${complete ? 'complete' : ''}">${fmt(photos.length)} / ${fmt(target)}</div>
+                </div>
+                <div class="photo-thumb-grid">${thumbs}${emptySlots}</div>
+              </div>
+              <div class="photo-set-actions">
+                <button type="button" data-photo-action="add-photo" data-set-id="${set.id}">📷 Add</button>
+                <button type="button" data-photo-action="view-set" data-set-id="${set.id}">▦ View</button>
+                <button type="button" data-photo-action="email-set" data-set-id="${set.id}">✉ Email</button>
+                <button type="button" data-photo-action="more-set" data-set-id="${set.id}">••• More</button>
+              </div>
+            </article>`;
+          }).join('');
+
+          return `<details class="photo-date-group" ${dateIndex === 0 ? 'open' : ''}>
+            <summary>${esc(formatDateFolder(dateKey))}<span>${fmt(dateSets.length)} set${dateSets.length === 1 ? '' : 's'}</span></summary>
+            <div class="photo-date-body">${cards}</div>
+          </details>`;
+        }).join('');
+
+      const setCount = group.sets.length;
+      const photoCount = group.sets.reduce((sum,set) => sum + photosForSet(set.id).length, 0);
+      return `<details class="photo-part-group" ${partIndex === 0 && q ? 'open' : ''}>
+        <summary><span class="history-folder-title"><strong>${esc(group.name)}</strong><small>${fmt(setCount)} set${setCount === 1 ? '' : 's'} · ${fmt(photoCount)} photo${photoCount === 1 ? '' : 's'}</small></span></summary>
+        <div class="photo-folder-body">${dateFolders}</div>
+      </details>`;
+    }).join('');
+
+    const hasSets = sets.length > 0;
+    els.photosEmpty.classList.toggle('show', !hasSets);
+    els.photoSetList.classList.toggle('hidden', !hasSets);
+    if (!hasSets && q && state.workPhotoSets.length) {
+      els.photosEmpty.innerHTML = `<h2>No matching photo sets</h2><p>Try another part name or job number.</p>`;
+    } else if (!state.workPhotoSets.length) {
+      els.photosEmpty.innerHTML = `<div class="empty-icon">▣</div><h2>No work photos yet</h2><p>Create a photo set for a part, then take its process photos in order.</p><button type="button" id="emptyPhotoSetBtn" class="primary">Create Photo Set</button>`;
+      $('#emptyPhotoSetBtn')?.addEventListener('click', newPhotoSetModal);
+    }
+  }
+
+  function txIcon(type) {
+    return ({receive:'+', skidAdd:'+', skidRemove:'−', open:'▣', use:'−', adjust:'±', assembly:'A', part:'P', photo:'▣', undo:'↶'}[type] || '•');
+  }
+
+  function transactionPartRefs(tx) {
+    const refs = [];
+    const addRef = (id, name) => {
+      const resolvedName = name || state.parts.find(p => p.id === id)?.name || '';
+      const key = id || `name:${resolvedName.toLowerCase()}`;
+      if (!key || refs.some(ref => ref.key === key)) return;
+      refs.push({ key, id: id || '', name: resolvedName || 'General' });
+    };
+
+    if (Array.isArray(tx.partRefs)) tx.partRefs.forEach(ref => addRef(ref?.id || '', ref?.name || ''));
+    if (Array.isArray(tx.deltas)) tx.deltas.forEach(delta => addRef(delta.partId || '', ''));
+
+    if (!refs.length) {
+      const detail = `${tx.title || ''} ${tx.detail || ''}`.toLowerCase();
+      state.parts
+        .slice()
+        .sort((a,b) => b.name.length - a.name.length)
+        .filter(part => detail.includes(part.name.toLowerCase()))
+        .forEach(part => addRef(part.id, part.name));
+    }
+
+    if (!refs.length) addRef('', 'General');
+    return refs;
+  }
+
+  function transactionPieceDelta(tx) {
+    return (tx.deltas || []).reduce((sum, delta) => {
+      const part = state.parts.find(p => p.id === delta.partId);
+      const amount = clampNum(delta.delta);
+      return sum + (delta.field === 'unopenedBoxes' ? amount * clampNum(part?.boxQty, 1) : amount);
+    }, 0);
+  }
+
+  function transactionCategory(tx) {
+    if (['added','removed','changed'].includes(tx.category)) return tx.category;
+    if (['receive','skidAdd'].includes(tx.type)) return 'added';
+    if (['use','skidRemove','assembly'].includes(tx.type)) return 'removed';
+    if (['open','part','undo'].includes(tx.type)) return 'changed';
+    const net = transactionPieceDelta(tx);
+    return net > 0 ? 'added' : net < 0 ? 'removed' : 'changed';
+  }
+
+  function localDateKey(iso) {
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function formatDateFolder(key) {
+    const [y,m,d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString([], { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  }
+
+  function historyItemHtml(tx) {
+    const d = new Date(tx.createdAt);
+    const category = transactionCategory(tx);
+    const label = category === 'added' ? 'Added' : category === 'removed' ? 'Removed' : 'Change';
+    return `<article class="history-item">
+      <div class="history-icon">${txIcon(tx.type)}</div>
+      <div>
+        <h3>${esc(tx.title)}${tx.undone ? ' <span class="part-meta">(undone)</span>' : ''}</h3>
+        <p>${esc(tx.detail)}</p>
+        ${tx.note ? `<p><strong>Note:</strong> ${esc(tx.note)}</p>` : ''}
+        <span class="history-category">${label}</span>
+      </div>
+      <div class="history-time">${d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}
+        ${tx.undoneAt ? `<br>Undone ${new Date(tx.undoneAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}` : ''}
+        ${tx.deltas?.length && !tx.undone ? `<br><button type="button" class="undo-btn" data-undo="${tx.id}">Undo</button>` : ''}
+      </div>
+    </article>`;
+  }
+
+  function renderHistory() {
+    const transactions = state.transactions.slice(0, 1000);
+    const counts = { all: transactions.length, added: 0, removed: 0, changed: 0 };
+    transactions.forEach(tx => counts[transactionCategory(tx)]++);
+    $('#historyCountAll').textContent = fmt(counts.all);
+    $('#historyCountAdded').textContent = fmt(counts.added);
+    $('#historyCountRemoved').textContent = fmt(counts.removed);
+    $('#historyCountChanged').textContent = fmt(counts.changed);
+    $$('.history-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.historyFilter === historyFilter));
+
+    const filtered = historyFilter === 'all'
+      ? transactions
+      : transactions.filter(tx => transactionCategory(tx) === historyFilter);
+
+    const groups = new Map();
+    filtered.forEach(tx => {
+      transactionPartRefs(tx).forEach(ref => {
+        if (!groups.has(ref.key)) groups.set(ref.key, { name: ref.name || 'General', txs: [] });
+        groups.get(ref.key).txs.push(tx);
+      });
+    });
+
+    const sortedGroups = [...groups.values()].sort((a,b) => {
+      if (a.name === 'General') return 1;
+      if (b.name === 'General') return -1;
+      return a.name.localeCompare(b.name);
+    });
+
+    els.historyList.innerHTML = sortedGroups.map(group => {
+      const byDate = new Map();
+      group.txs.forEach(tx => {
+        const key = localDateKey(tx.createdAt);
+        if (!byDate.has(key)) byDate.set(key, []);
+        byDate.get(key).push(tx);
+      });
+      const dateFolders = [...byDate.entries()]
+        .sort((a,b) => b[0].localeCompare(a[0]))
+        .map(([dateKey, txs], index) => `<details class="history-date-group" ${index === 0 ? 'open' : ''}>
+          <summary><span>${esc(formatDateFolder(dateKey))}</span><small>${fmt(txs.length)} record${txs.length === 1 ? '' : 's'}</small></summary>
+          <div class="history-date-body">${txs.map(historyItemHtml).join('')}</div>
+        </details>`).join('');
+      const groupCounts = { added:0, removed:0, changed:0 };
+      group.txs.forEach(tx => groupCounts[transactionCategory(tx)]++);
+      const meta = `${fmt(group.txs.length)} records · +${fmt(groupCounts.added)} / −${fmt(groupCounts.removed)} / ${fmt(groupCounts.changed)} changes`;
+      return `<details class="history-part-group">
+        <summary><span class="history-folder-title"><strong>${esc(group.name)}</strong><small>${esc(meta)}</small></span></summary>
+        <div class="history-folder-body">${dateFolders}</div>
+      </details>`;
+    }).join('');
+
+    if (!filtered.length && transactions.length) {
+      els.historyList.innerHTML = `<div class="history-empty-filter">No ${historyFilter === 'changed' ? 'changes' : historyFilter} records yet.</div>`;
+    }
+    els.historyEmpty.classList.toggle('show', transactions.length === 0);
+    els.historyList.classList.toggle('hidden', transactions.length === 0);
+  }
+
+  function openModal({eyebrow = '', title, body, footer = ''}) {
+    els.modalEyebrow.textContent = eyebrow;
+    els.modalTitle.textContent = title;
+    els.modalBody.innerHTML = body;
+    els.modalFooter.innerHTML = footer;
+    if (!els.modal.open) els.modal.showModal();
+  }
+
+  function closeModal() {
+    if (els.modal.open) els.modal.close();
+    pendingScanPhoto = '';
+  }
+
+  function folderOptions(selected = '') {
+    return `<option value="">Select parent folder</option>` + state.folders
+      .slice().sort((a,b)=>a.name.localeCompare(b.name))
+      .map(folder => `<option value="${folder.id}" ${folder.id===selected?'selected':''}>${esc(folder.name)}</option>`).join('');
+  }
+
+  function partOptions(selected = '') {
+    const groups = state.folders.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(folder => {
+      const children = state.parts.filter(part => part.folderId === folder.id).sort((a,b)=>a.name.localeCompare(b.name));
+      if (!children.length) return '';
+      return `<optgroup label="${esc(folder.name)}">${children.map(p => `<option value="${p.id}" ${p.id===selected?'selected':''}>${esc(p.name)}</option>`).join('')}</optgroup>`;
+    }).join('');
+    return `<option value="">Select hardware / part</option>${groups}`;
+  }
+
+  function parseLabelNumber(value) {
+    const cleaned = String(value ?? '').replace(/[,\s]/g, '');
+    const number = Number(cleaned);
+    return Number.isFinite(number) ? number : 0;
+  }
+
+  function firstLabelNumber(text, patterns) {
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (!match) continue;
+      const raw = match.slice(1).find(v => v !== undefined && v !== '');
+      const value = parseLabelNumber(raw);
+      if (value > 0) return value;
+    }
+    return 0;
+  }
+
+  function cleanLabelLine(line) {
+    return String(line || '').replace(/[|]/g, 'I').replace(/\s+/g, ' ').trim();
+  }
+
+  function parseNewPartLabelText(text) {
+    const normalized = String(text || '').replace(/\r/g, '\n');
+    const number = String.raw`([\d][\d,\s]*)`;
+    let boxQty = firstLabelNumber(normalized, [
+      new RegExp(String.raw`(?:pieces?|pcs?|units?|ea|each)\s*(?:per|\/)\s*(?:box|carton|case|ctn|container)\s*[:#=-]?\s*${number}`, 'i'),
+      new RegExp(String.raw`(?:qty|quantity|count|pack|pkg|standard\s*pack)\s*(?:per|\/)\s*(?:box|carton|case|ctn|container)\s*[:#=-]?\s*${number}`, 'i'),
+      new RegExp(String.raw`(?:box|carton|case|ctn|container)\s*(?:qty|quantity|count|pack|pkg)\s*[:#=-]?\s*${number}`, 'i'),
+      new RegExp(String.raw`(?:pack|pkg)\s*(?:qty|quantity|count)\s*[:#=-]?\s*${number}`, 'i'),
+      new RegExp(String.raw`${number}\s*(?:pieces?|pcs?|units?|ea|each)\s*(?:per|\/)\s*(?:box|carton|case|ctn|container)`, 'i')
+    ]);
+    let boxesPerSkid = firstLabelNumber(normalized, [
+      new RegExp(String.raw`(?:boxes?|cartons?|cases?|ctns?|containers?)\s*(?:per|\/)\s*(?:skid|pallet)\s*[:#=-]?\s*${number}`, 'i'),
+      new RegExp(String.raw`(?:skid|pallet)\s*(?:box(?:es)?|carton(?:s)?|case(?:s)?|ctn(?:s)?|container(?:s)?)\s*(?:qty|quantity|count)?\s*[:#=-]?\s*${number}`, 'i'),
+      new RegExp(String.raw`(?:skid|pallet)\s*(?:qty|quantity|count)\s*\(\s*(?:boxes?|cartons?|cases?|ctns?)\s*\)\s*[:#=-]?\s*${number}`, 'i'),
+      new RegExp(String.raw`${number}\s*(?:boxes?|cartons?|cases?|ctns?|containers?)\s*(?:per|\/)\s*(?:skid|pallet)`, 'i')
+    ]);
+    const totalQty = firstLabelNumber(normalized, [
+      new RegExp(String.raw`(?:total\s*(?:qty|quantity|pieces?|pcs?|units?)?|grand\s*total|pallet\s*total|skid\s*total)\s*[:#=-]?\s*${number}`, 'i'),
+      new RegExp(String.raw`(?:qty|quantity)\s*total\s*[:#=-]?\s*${number}`, 'i')
+    ]);
+
+    if (!boxQty && totalQty && boxesPerSkid && totalQty % boxesPerSkid === 0) boxQty = totalQty / boxesPerSkid;
+    if (!boxesPerSkid && totalQty && boxQty && totalQty % boxQty === 0) boxesPerSkid = totalQty / boxQty;
+
+    const lines = normalized.split(/\n+/).map(cleanLabelLine).filter(Boolean);
+    const nameField = /^(?:part(?:\s*(?:name|number|no\.?|#))?|item(?:\s*(?:name|number|no\.?|#|description))?|product(?:\s*(?:name|code))?|material(?:\s*(?:name|number|no\.?|#))?|sku)\s*[:#=-]?\s*(.+)$/i;
+    const explicitName = lines.map(line => line.match(nameField)?.[1]?.trim() || '').find(Boolean) || '';
+
+    const generic = /^(part|part name|part number|part no|description|item|item description|material|product|label|qty|quantity|total|box|boxes|carton|cartons|case|cases|skid|pallet|customer|supplier|vendor|date|lot|order|po|work order|ship to|from)\b/i;
+    const quantityWords = /\b(qty|quantity|total|box|boxes|carton|cartons|case|cases|ctn|ctns|skid|pallet|pieces|pcs|units|per box|per skid|weight|lbs?|kg)\b/i;
+    const candidates = lines.map((line, index) => {
+      const letters = (line.match(/[A-Za-z]/g) || []).length;
+      const digits = (line.match(/\d/g) || []).length;
+      const compactCode = line.replace(/\s/g, '');
+      const isCode = /^[A-Za-z0-9][A-Za-z0-9._/-]{1,24}$/.test(compactCode) &&
+        letters >= 1 && (digits >= 1 || letters >= 3);
+      const isDescription = letters >= 3 && !quantityWords.test(line) && line.length <= 80;
+      if (generic.test(line) || (!isCode && !isDescription)) return null;
+      let score = Math.min(line.length, 45) + ((line.match(/[A-Za-z]{3,}/g) || []).length * 4) - index;
+      if (isCode) score += 65;
+      if (letters > 0 && digits > 0) score += 22;
+      if (/^[A-Z0-9._/-]+$/.test(compactCode)) score += 10;
+      return { line, score };
+    }).filter(Boolean).sort((a,b) => b.score - a.score);
+
+    const name = cleanLabelLine(explicitName || candidates[0]?.line || '')
+      .replace(/^[\s:#=-]+|[\s:#=-]+$/g, '')
+      .slice(0, 80);
+    return { name, boxQty, boxesPerSkid, totalQty, lines };
+  }
+
+  function ocrTextScore(text) {
+    const value = String(text || '');
+    const letters = (value.match(/[A-Za-z]/g) || []).length;
+    const digits = (value.match(/\d/g) || []).length;
+    const lines = value.split(/\n+/).filter(line => line.trim()).length;
+    return letters + digits + (lines * 8);
+  }
+
+  async function imageDataUrl(file, max = 2200, quality = 0.92, enhance = false) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const ctx = canvas.getContext('2d', { willReadFrequently: enhance });
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    if (enhance) {
+      const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = image.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = (data[i] * .299) + (data[i + 1] * .587) + (data[i + 2] * .114);
+        const contrasted = Math.max(0, Math.min(255, ((gray - 128) * 1.65) + 128));
+        const clean = contrasted > 225 ? 255 : contrasted < 35 ? 0 : contrasted;
+        data[i] = data[i + 1] = data[i + 2] = clean;
+      }
+      ctx.putImageData(image, 0, 0);
+    }
+    return canvas.toDataURL('image/jpeg', quality);
+  }
+
+  function rawFileDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(reader.error || new Error('The selected photo could not be read'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function isHeicFile(file) {
+    const name = String(file?.name || '');
+    const type = String(file?.type || '').toLowerCase();
+    return /\.(heic|heif)$/i.test(name) || type.includes('heic') || type.includes('heif');
+  }
+
+  const nativeOcrCallbacks = new Map();
+  window.onNativeOcrResult = (requestId, text, error) => {
+    const pending = nativeOcrCallbacks.get(requestId);
+    if (!pending) return;
+    clearTimeout(pending.timeout);
+    nativeOcrCallbacks.delete(requestId);
+    if (error) pending.reject(new Error(error));
+    else pending.resolve(text || '');
+  };
+
+  function requestNativeOcr(dataUrl) {
+    const requestId = uid();
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        nativeOcrCallbacks.delete(requestId);
+        reject(new Error('Native label reading timed out'));
+      }, 45000);
+      nativeOcrCallbacks.set(requestId, { resolve, reject, timeout });
+      window.SkidCountNative.recognizeText(requestId, dataUrl);
+    });
+  }
+
+  async function detectImageText(file) {
+    if (window.SkidCountNative?.recognizeText) {
+      const [original, enhanced] = await Promise.all([
+        imageDataUrl(file, 2300, 0.93, false),
+        imageDataUrl(file, 2300, 0.92, true)
+      ]);
+      const results = await Promise.allSettled([
+        requestNativeOcr(original),
+        requestNativeOcr(enhanced)
+      ]);
+      const texts = results.filter(result => result.status === 'fulfilled').map(result => result.value).filter(Boolean);
+      if (!texts.length) throw new Error('Native label reading failed');
+      texts.sort((a,b) => ocrTextScore(b) - ocrTextScore(a));
+      const primary = texts[0];
+      const primaryLines = new Set(primary.split(/\n+/).map(cleanLabelLine).filter(Boolean));
+      const extraLines = texts.slice(1).flatMap(text => text.split(/\n+/).map(cleanLabelLine))
+        .filter(line => line && !primaryLines.has(line));
+      return { text: [primary, ...extraLines].filter(Boolean).join('\n'), supported: true };
+    }
+    if (!('TextDetector' in window)) return { text: '', supported: false };
+    const detector = new TextDetector();
+    const bitmap = await createImageBitmap(file);
+    const results = await detector.detect(bitmap);
+    return { text: results.map(r => r.rawValue).join('\n'), supported: true };
+  }
+
+  function folderModal(folder = null, afterSave = null) {
+    const editing = Boolean(folder);
+    openModal({
+      eyebrow: editing ? 'PARENT FOLDER' : 'NEW PARENT FOLDER',
+      title: editing ? `Edit ${folder.name}` : 'Add Parent Folder',
+      body: `<form id="folderForm" class="form-grid">
+        <div class="field full"><label>Folder / main part name</label><input name="name" required maxlength="80" value="${esc(folder?.name || '')}" placeholder="Example: C3S"></div>
+        <div class="field full"><label>Folder note</label><textarea name="note" maxlength="180" placeholder="Optional model, line, customer, or process note">${esc(folder?.note || '')}</textarea></div>
+        <div class="field full"><div class="help">Open this folder on Inventory and tap + Hardware to add its child parts.</div></div>
+      </form>`,
+      footer: `${editing ? '<button id="deleteFolderBtn" class="danger">Delete Folder</button>' : ''}<button id="cancelBtn" class="secondary">Cancel</button><button id="saveFolderBtn" class="primary">Save Folder</button>`
+    });
+    $('#cancelBtn').onclick = closeModal;
+    $('#saveFolderBtn').onclick = () => {
+      const form = $('#folderForm');
+      if (!form.reportValidity()) return;
+      const data = Object.fromEntries(new FormData(form));
+      const name = data.name.trim();
+      const duplicate = state.folders.find(item => item.id !== folder?.id && item.name.toLowerCase() === name.toLowerCase());
+      if (duplicate) return alert('A parent folder with that name already exists.');
+      let savedFolder = folder;
+      if (editing) {
+        folder.name = name;
+        folder.note = data.note.trim();
+        state.workPhotoSets.filter(set => set.partId === folder.id).forEach(set => set.partName = folder.name);
+        state.workPhotos.filter(photo => photo.partId === folder.id).forEach(photo => photo.partName = folder.name);
+        addTransaction('folder', 'Parent folder updated', folder.name, [], { category:'changed', partRefs:[{id:folder.id,name:folder.name}] });
+      } else {
+        savedFolder = { id: uid(), name, note: data.note.trim(), createdAt: nowIso() };
+        state.folders.push(savedFolder);
+        openFolderIds.add(savedFolder.id);
+        addTransaction('folder', 'Parent folder added', savedFolder.name, [], { category:'changed', partRefs:[{id:savedFolder.id,name:savedFolder.name}] });
+      }
+      saveState(); closeModal(); toast(editing ? 'Folder updated' : 'Folder added');
+      if (typeof afterSave === 'function') setTimeout(() => afterSave(savedFolder), 0);
+    };
+    if (editing) $('#deleteFolderBtn').onclick = () => {
+      const children = state.parts.filter(part => part.folderId === folder.id);
+      if (folder.systemKey === 'unfiled') return alert('The Unfiled Hardware folder is used for safe migration and cannot be deleted. Move its hardware into other folders instead.');
+      const message = children.length
+        ? `Delete ${folder.name}? Its ${children.length} hardware item${children.length === 1 ? '' : 's'} will be moved to Unfiled Hardware.`
+        : `Delete ${folder.name}?`;
+      if (!confirm(message)) return;
+      if (children.length) {
+        const unfiled = ensureUnfiledFolder();
+        children.forEach(part => part.folderId = unfiled.id);
+        openFolderIds.add(unfiled.id);
+      }
+      state.folders = state.folders.filter(item => item.id !== folder.id);
+      openFolderIds.delete(folder.id);
+      addTransaction('folder', 'Parent folder deleted', folder.name, [], { category:'changed', partRefs:[{id:folder.id,name:folder.name}] });
+      saveState(); closeModal(); toast('Folder deleted');
+    };
+  }
+
+  function addPartModal(part = null, presetFolderId = '') {
+    if (!state.folders.length) {
+      toast('Create a parent folder first');
+      return folderModal(null, saved => addPartModal(null, saved.id));
+    }
+    const editing = Boolean(part);
+    let partPhoto = part?.photo || '';
+    openModal({
+      eyebrow: editing ? 'HARDWARE SETUP' : 'NEW HARDWARE',
+      title: editing ? `Edit ${part.name}` : 'Add Hardware',
+      body: `<form id="partForm" class="form-grid">
+        <section class="camera-panel">
+          <h3>Quick label setup</h3>
+          <p>Photograph the part label to fill likely name and quantity fields. Always review the detected values before saving.</p>
+          <div class="camera-actions">
+            <button id="capturePartLabelBtn" class="primary" type="button">📷 Take Label Photo</button>
+            <button id="removePartPhotoBtn" class="secondary ${partPhoto ? '' : 'hidden'}" type="button">Remove Photo</button>
+          </div>
+          <input id="partLabelCameraInput" class="hidden" type="file" accept="image/*" capture="environment">
+          <div id="partPhotoPreview" class="part-photo-preview ${partPhoto ? '' : 'hidden'}">
+            ${partPhoto ? `<img src="${partPhoto}" alt="Saved part label">` : ''}
+          </div>
+          <div id="partPhotoPlaceholder" class="part-photo-placeholder ${partPhoto ? 'hidden' : ''}">No label photo saved yet.</div>
+          <div id="partScanStatus" class="part-scan-status">Camera is ready. Clear, straight-on photos with the entire label visible work best.</div>
+          <div id="partDetectedText"></div>
+        </section>
+        <div class="field full"><label>Parent folder</label><select name="folderId" required>${folderOptions(part?.folderId || presetFolderId)}</select></div>
+        <div class="field full"><label>Hardware / child part name</label><input id="partNameInput" name="name" required maxlength="80" value="${esc(part?.name || '')}" placeholder="Example: Upper Frame Bracket"></div>
+        <div class="field"><label>Pieces per box</label><input id="partBoxQtyInput" name="boxQty" type="number" min="1" step="1" required value="${part?.boxQty || ''}"></div>
+        <div class="field"><label>Boxes per full skid</label><input id="partBoxesPerSkidInput" name="boxesPerSkid" type="number" min="1" step="1" required value="${part?.boxesPerSkid || ''}"></div>
+        <div class="field"><label>Low-stock warning</label><input name="minStock" type="number" min="0" step="1" value="${part?.minStock || 0}"></div>
+        <div class="field"><label>Unopened boxes</label><input name="unopenedBoxes" type="number" min="0" step="1" value="${part?.unopenedBoxes || 0}"></div>
+        <div class="field"><label>Open / loose pieces estimate</label><input name="tableQty" type="number" min="0" step="1" value="${part?.tableQty || 0}"></div>
+        <div class="field full"><div class="help">Use these count fields when creating or editing a part, or tap Set Counts from Inventory for a faster correction. Assembly recipes are managed under Settings.</div></div>
+      </form>`,
+      footer: `${editing ? '<button id="deletePartBtn" class="danger">Delete Hardware</button>' : ''}<button id="cancelBtn" class="secondary">Cancel</button><button id="savePartBtn" class="primary">Save Hardware</button>`
+    });
+
+    const cameraInput = $('#partLabelCameraInput');
+    const captureBtn = $('#capturePartLabelBtn');
+    const status = $('#partScanStatus');
+    const preview = $('#partPhotoPreview');
+    const placeholder = $('#partPhotoPlaceholder');
+    const removePhotoBtn = $('#removePartPhotoBtn');
+    const detectedTextWrap = $('#partDetectedText');
+
+    function showPartPhoto(photo) {
+      preview.innerHTML = photo ? `<img src="${photo}" alt="Captured part label">` : '';
+      preview.classList.toggle('hidden', !photo);
+      placeholder.classList.toggle('hidden', Boolean(photo));
+      removePhotoBtn.classList.toggle('hidden', !photo);
+    }
+
+    captureBtn.onclick = () => cameraInput.click();
+    removePhotoBtn.onclick = () => {
+      partPhoto = '';
+      showPartPhoto('');
+      detectedTextWrap.innerHTML = '';
+      status.className = 'part-scan-status';
+      status.textContent = 'Label photo removed. You can take another photo or enter the part manually.';
+    };
+
+    cameraInput.onchange = async () => {
+      const file = cameraInput.files?.[0];
+      cameraInput.value = '';
+      if (!file) return;
+      captureBtn.disabled = true;
+      captureBtn.textContent = 'Reading Label…';
+      status.className = 'part-scan-status';
+      status.textContent = 'Saving the photo and checking the printed label…';
+      detectedTextWrap.innerHTML = '';
+      try {
+        partPhoto = await compressImage(file, 850, 0.58);
+        showPartPhoto(partPhoto);
+      } catch {
+        partPhoto = '';
+        showPartPhoto('');
+        status.className = 'part-scan-status warning';
+        status.textContent = 'The photo could not be saved. You can still enter the fields manually.';
+      }
+
+      try {
+        const detection = await detectImageText(file);
+        if (!detection.supported) {
+          status.className = 'part-scan-status warning';
+          status.textContent = 'Photo saved. Automatic text reading is not available in this browser, so enter or confirm the label values manually.';
+        } else if (!detection.text.trim()) {
+          status.className = 'part-scan-status warning';
+          status.textContent = 'Photo saved, but no clear text was detected. Try a closer, straighter photo or enter the values manually.';
+        } else {
+          const parsed = parseNewPartLabelText(detection.text);
+          if (parsed.name) $('#partNameInput').value = parsed.name;
+          if (parsed.boxQty) $('#partBoxQtyInput').value = parsed.boxQty;
+          if (parsed.boxesPerSkid) $('#partBoxesPerSkidInput').value = parsed.boxesPerSkid;
+          const filled = [parsed.name && 'name', parsed.boxQty && 'pieces per box', parsed.boxesPerSkid && 'boxes per skid'].filter(Boolean);
+          status.className = filled.length ? 'part-scan-status success' : 'part-scan-status warning';
+          status.textContent = filled.length
+            ? `Detected ${filled.join(', ')}. Review every field before saving the part.`
+            : 'Text was detected, but the quantities were not clear enough to fill safely. Review the text and enter the fields manually.';
+          detectedTextWrap.innerHTML = `<details class="detected-label-text"><summary>View detected label text</summary><pre>${esc(detection.text)}</pre></details>`;
+        }
+      } catch {
+        status.className = 'part-scan-status warning';
+        status.textContent = 'Photo saved, but automatic text reading failed. Confirm the fields manually.';
+      } finally {
+        captureBtn.disabled = false;
+        captureBtn.textContent = partPhoto ? '📷 Retake Label Photo' : '📷 Take Label Photo';
+      }
+    };
+
+    $('#cancelBtn').onclick = closeModal;
+    $('#savePartBtn').onclick = () => {
+      const form = $('#partForm');
+      if (!form.reportValidity()) return;
+      const data = Object.fromEntries(new FormData(form));
+      const nextName = data.name.trim();
+      const nextUnopened = Math.max(0, clampNum(data.unopenedBoxes));
+      const nextOpenLoose = Math.max(0, clampNum(data.tableQty));
+      const duplicate = state.parts.find(item =>
+        item.id !== part?.id
+        && item.folderId === data.folderId
+        && item.name.toLowerCase() === nextName.toLowerCase()
+      );
+      if (duplicate) return alert('That parent folder already contains hardware with this name.');
+
+      if (editing) {
+        const oldName = part.name;
+        const oldUnopened = clampNum(part.unopenedBoxes);
+        const oldOpenLoose = clampNum(part.tableQty);
+        const setupChanged = oldName !== nextName
+          || part.folderId !== data.folderId
+          || clampNum(part.boxQty) !== clampNum(data.boxQty)
+          || clampNum(part.boxesPerSkid) !== clampNum(data.boxesPerSkid)
+          || clampNum(part.minStock) !== clampNum(data.minStock)
+          || part.photo !== partPhoto;
+
+        part.name = nextName;
+        part.folderId = data.folderId;
+        part.boxQty = Math.max(1, clampNum(data.boxQty, 1));
+        part.boxesPerSkid = Math.max(1, clampNum(data.boxesPerSkid, 1));
+        part.minStock = Math.max(0, clampNum(data.minStock));
+        part.photo = partPhoto;
+        part.unopenedBoxes = nextUnopened;
+        part.tableQty = nextOpenLoose;
+        part.storageLoose = 0;
+
+        if (setupChanged) {
+          addTransaction(
+            'part',
+            'Hardware updated',
+            `${oldName}${oldName !== part.name ? ` → ${part.name}` : ''}${partPhoto ? ' · label photo saved' : ''}`,
+            [],
+            { category:'changed', partRefs:[{id:part.id,name:part.name}] }
+          );
+        }
+
+        const countDeltas = [
+          makeDelta(part.id, 'unopenedBoxes', nextUnopened - oldUnopened),
+          makeDelta(part.id, 'tableQty', nextOpenLoose - oldOpenLoose)
+        ].filter(delta => delta.delta !== 0);
+        if (countDeltas.length) {
+          addTransaction(
+            'countSet',
+            'Inventory totals updated',
+            `${part.name}: unopened ${fmt(oldUnopened)} → ${fmt(nextUnopened)} boxes · open/loose ${fmt(oldOpenLoose)} → ${fmt(nextOpenLoose)} pieces`,
+            countDeltas,
+            { category:'changed' }
+          );
+        }
+        if (!setupChanged && !countDeltas.length) return toast('No changes to save');
+      } else {
+        const newPart = {
+          id: uid(),
+          folderId: data.folderId,
+          name: nextName,
+          boxQty: Math.max(1, clampNum(data.boxQty, 1)),
+          boxesPerSkid: Math.max(1, clampNum(data.boxesPerSkid, 1)),
+          minStock: Math.max(0, clampNum(data.minStock)),
+          photo: partPhoto,
+          unopenedBoxes: nextUnopened,
+          storageLoose: 0,
+          tableQty: nextOpenLoose
+        };
+        state.parts.push(newPart);
+        addTransaction(
+          'part',
+          'Hardware added',
+          `${newPart.name} · ${fmt(nextUnopened)} unopened boxes · ${fmt(nextOpenLoose)} open/loose pieces${partPhoto ? ' · label photo saved' : ''}`,
+          [],
+          { category:'changed', partRefs:[{id:newPart.id,name:newPart.name}] }
+        );
+      }
+
+      try {
+        saveState();
+        closeModal();
+        toast(editing ? 'Hardware updated' : 'Hardware added');
+      } catch {
+        alert('The part could not be saved. The label photo may be using too much device storage. Remove the photo or download a backup and clear older data.');
+      }
+    };
+
+    if (editing) $('#deletePartBtn').onclick = () => {
+      if (!confirm(`Delete ${part.name}? Its history will remain, but this hardware inventory will be removed.`)) return;
+      state.parts = state.parts.filter(p => p.id !== part.id);
+      state.assemblies.forEach(a => a.items = a.items.filter(item => item.partId !== part.id));
+      state.assemblies = state.assemblies.filter(a => a.items.length > 0);
+      addTransaction('part', 'Hardware deleted', part.name, [], { category:'changed', partRefs:[{id:part.id,name:part.name}] });
+      saveState(); closeModal(); toast('Hardware deleted');
+    };
+  }
+
+  function fullSkidModal() {
+    if (!state.parts.length) return addPartModal();
+    openModal({
+      eyebrow: 'STANDARD RECEIPT', title: 'Receive Full Skid',
+      body: `<form id="fullSkidForm" class="form-grid">
+        <div class="field full"><label>Part</label><select name="partId" required>${partOptions()}</select></div>
+        <div class="field"><label>Number of full skids</label><input name="skids" type="number" min="1" step="1" value="1" required></div>
+        <div class="field"><label>Load / skid number</label><input name="loadNo" maxlength="50" placeholder="Optional"></div>
+        <div class="field full"><label>Note</label><textarea name="note" placeholder="Optional delivery note"></textarea></div>
+        <div id="fullSkidSummary" class="receipt-total field full">Select a part to calculate the receipt.</div>
+      </form>`,
+      footer: `<button id="cancelBtn" class="secondary">Cancel</button><button id="confirmFullBtn" class="primary">Add Inventory</button>`
+    });
+    const form = $('#fullSkidForm');
+    const update = () => {
+      const p = state.parts.find(x => x.id === form.partId.value);
+      const skids = Math.max(1, clampNum(form.skids.value, 1));
+      $('#fullSkidSummary').textContent = p ? `${fmt(skids * p.boxesPerSkid)} boxes · ${fmt(skids * p.boxesPerSkid * p.boxQty)} pieces` : 'Select a part to calculate the receipt.';
+    };
+    form.oninput = update;
+    $('#cancelBtn').onclick = closeModal;
+    $('#confirmFullBtn').onclick = () => {
+      if (!form.reportValidity()) return;
+      const p = state.parts.find(x => x.id === form.partId.value);
+      const skids = Math.max(1, clampNum(form.skids.value, 1));
+      const boxes = skids * p.boxesPerSkid;
+      const deltas = [makeDelta(p.id, 'unopenedBoxes', boxes)];
+      applyDeltas(deltas);
+      const suffix = form.loadNo.value.trim() ? ` · Load ${form.loadNo.value.trim()}` : '';
+      addTransaction('receive', 'Full skid received', `${p.name}: ${fmt(boxes)} boxes (${fmt(boxes*p.boxQty)} pieces)${suffix}`, deltas, {note: form.note.value.trim()});
+      saveState(); closeModal(); toast('Full skid received');
+    };
+  }
+
+  function receiptRowHtml(index, prefill = {}) {
+    return `<div class="receipt-row" data-row="${index}">
+      <div class="receipt-row-head"><strong>Part line ${index+1}</strong><button type="button" class="remove-row">Remove</button></div>
+      <div class="form-grid">
+        <div class="field full"><label>Part</label><select class="r-part" required>${partOptions(prefill.partId || '')}</select></div>
+        <div class="field"><label>Boxes received</label><input class="r-boxes" type="number" min="0" step="1" value="${prefill.boxes ?? 0}"></div>
+        <div class="field"><label>Pieces per box</label><input class="r-boxQty" type="number" min="1" step="1" value="${prefill.boxQty ?? ''}" placeholder="Uses saved amount" readonly></div>
+        <div class="field"><label>Open / loose pieces</label><input class="r-loose" type="number" min="0" step="1" value="${prefill.loose ?? 0}"></div>
+        <div class="field"><label>Line total</label><input class="r-total" value="0" readonly></div>
+      </div>
+    </div>`;
+  }
+
+  function customReceiptModal(prefillRows = [], scanPhoto = '') {
+    if (!state.parts.length) return addPartModal();
+    const rows = prefillRows.length ? prefillRows : [{}];
+    pendingScanPhoto = scanPhoto || pendingScanPhoto;
+    openModal({
+      eyebrow: 'PARTIAL OR MIXED SKID', title: 'Custom Receipt',
+      body: `${pendingScanPhoto ? `<div class="scan-preview"><img src="${pendingScanPhoto}" alt="Captured skid label"></div>` : ''}
+        <div id="receiptRows">${rows.map((r,i)=>receiptRowHtml(i,r)).join('')}</div>
+        <button id="addReceiptRowBtn" class="secondary wide" type="button">+ Add Another Part</button>
+        <div class="form-grid" style="margin-top:12px">
+          <div class="field"><label>Receipt type</label><select id="receiptType"><option>Partial skid</option><option>Mixed skid</option><option>Custom delivery</option></select></div>
+          <div class="field"><label>Load / skid number</label><input id="receiptLoad" maxlength="50" placeholder="Optional"></div>
+          <div class="field full"><label>Note</label><textarea id="receiptNote" placeholder="Optional delivery note"></textarea></div>
+          <div id="receiptGrandTotal" class="receipt-total field full">0 boxes · 0 pieces</div>
+        </div>`,
+      footer: `<button id="cancelBtn" class="secondary">Cancel</button><button id="confirmCustomBtn" class="primary">Add Inventory</button>`
+    });
+
+    const rowsWrap = $('#receiptRows');
+    const bindRows = () => {
+      $$('.receipt-row', rowsWrap).forEach(row => {
+        const select = $('.r-part', row), boxQty = $('.r-boxQty', row);
+        const selected = state.parts.find(p=>p.id===select.value);
+        if (selected) boxQty.value = selected.boxQty;
+        select.onchange = () => {
+          const p = state.parts.find(x=>x.id===select.value);
+          if (p) boxQty.value = p.boxQty;
+          recalcReceipt();
+        };
+        $$('input', row).forEach(i => i.oninput = recalcReceipt);
+        $('.remove-row', row).onclick = () => { row.remove(); renumberRows(); recalcReceipt(); };
+      });
+      recalcReceipt();
+    };
+    const renumberRows = () => $$('.receipt-row', rowsWrap).forEach((r,i)=> $('.receipt-row-head strong',r).textContent=`Part line ${i+1}`);
+    const recalcReceipt = () => {
+      let boxes = 0, pieces = 0;
+      $$('.receipt-row', rowsWrap).forEach(row => {
+        const b = Math.max(0, clampNum($('.r-boxes',row).value));
+        const q = Math.max(0, clampNum($('.r-boxQty',row).value));
+        const l = Math.max(0, clampNum($('.r-loose',row).value));
+        boxes += b; pieces += (b*q)+l;
+        $('.r-total',row).value = fmt((b*q)+l);
+      });
+      $('#receiptGrandTotal').textContent = `${fmt(boxes)} boxes · ${fmt(pieces)} pieces`;
+    };
+
+    $('#addReceiptRowBtn').onclick = () => {
+      const i = $$('.receipt-row', rowsWrap).length;
+      rowsWrap.insertAdjacentHTML('beforeend', receiptRowHtml(i, {}));
+      bindRows();
+      $('.receipt-row:last-child', rowsWrap).scrollIntoView({behavior:'smooth',block:'center'});
+    };
+    $('#cancelBtn').onclick = closeModal;
+    $('#confirmCustomBtn').onclick = () => {
+      const receiptRows = $$('.receipt-row', rowsWrap);
+      if (!receiptRows.length) return toast('Add at least one part line');
+      const deltas = [];
+      const details = [];
+      for (const row of receiptRows) {
+        const partId = $('.r-part',row).value;
+        const p = state.parts.find(x=>x.id===partId);
+        if (!p) return toast('Choose a part for every line');
+        const boxes = Math.max(0, clampNum($('.r-boxes',row).value));
+        const boxQty = p.boxQty;
+        const loose = Math.max(0, clampNum($('.r-loose',row).value));
+        if (boxes === 0 && loose === 0) return toast(`Enter a quantity for ${p.name}`);
+        if (boxes) deltas.push(makeDelta(p.id,'unopenedBoxes',boxes));
+        if (loose) deltas.push(makeDelta(p.id,'tableQty',loose));
+        details.push(`${p.name}: ${fmt(boxes)} boxes × ${fmt(boxQty)} + ${fmt(loose)} open/loose = ${fmt(boxes*boxQty+loose)}`);
+      }
+      applyDeltas(deltas);
+      const load = $('#receiptLoad').value.trim();
+      addTransaction('receive', $('#receiptType').value, `${details.join(' | ')}${load ? ` · Load ${load}` : ''}`, deltas, {note:$('#receiptNote').value.trim(), photo:pendingScanPhoto});
+      saveState(); closeModal(); toast('Custom receipt added');
+    };
+    bindRows();
+  }
+
+
+  function quickBoxAdjust(part, direction) {
+    if (direction < 0 && part.unopenedBoxes < 1) {
+      toast('No unopened boxes are available to remove.');
+      return;
+    }
+    const delta = direction > 0 ? 1 : -1;
+    const pieces = Math.max(1, clampNum(part.boxQty, 1));
+    const deltas = [makeDelta(part.id, 'unopenedBoxes', delta)];
+    applyDeltas(deltas);
+    if (direction > 0) {
+      addTransaction('boxAdd', 'Quick box added', `${part.name}: +1 box (+${fmt(pieces)} pieces)`, deltas, { category:'added' });
+      toast('1 box added. Undo is available in History.');
+    } else {
+      addTransaction('boxRemove', 'Quick box removed', `${part.name}: −1 box (−${fmt(pieces)} pieces)`, deltas, { category:'removed' });
+      toast('1 box removed. Undo is available in History.');
+    }
+    saveState();
+  }
+
+  function quickSkidAdjust(part, direction) {
+    const boxes = Math.max(1, clampNum(part.boxesPerSkid, 1));
+    const pieces = boxes * Math.max(1, clampNum(part.boxQty, 1));
+    if (direction < 0 && part.unopenedBoxes < boxes) {
+      toast(`Only ${fmt(part.unopenedBoxes)} unopened boxes are available. Use Adjust for a partial skid.`);
+      return;
+    }
+    const delta = boxes * (direction > 0 ? 1 : -1);
+    const deltas = [makeDelta(part.id, 'unopenedBoxes', delta)];
+    applyDeltas(deltas);
+    if (direction > 0) {
+      addTransaction('skidAdd', 'Quick skid added', `${part.name}: +${fmt(boxes)} boxes (+${fmt(pieces)} pieces)`, deltas, { category:'added' });
+      toast('1 full skid added. Undo is available in History.');
+    } else {
+      addTransaction('skidRemove', 'Quick skid removed', `${part.name}: −${fmt(boxes)} boxes (−${fmt(pieces)} pieces)`, deltas, { category:'removed' });
+      toast('1 full skid removed. Undo is available in History.');
+    }
+    saveState();
+  }
+
+
+  function usePartModal(part) {
+    openModal({
+      eyebrow:'OPEN / LOOSE INVENTORY', title:`Use ${part.name}`,
+      body:`<form id="useForm" class="form-grid">
+        <div class="field full"><label>Pieces used</label><input name="qty" type="number" min="1" step="1" required autofocus></div>
+        <div class="field full"><label>Reason / job</label><input name="note" maxlength="80" placeholder="Optional"></div>
+        <div class="receipt-total field full">Current open / loose estimate: ${fmt(part.tableQty)}</div>
+      </form>`,
+      footer:`<button id="cancelBtn" class="secondary">Cancel</button><button id="confirmUseBtn" class="primary">Record Use</button>`
+    });
+    $('#cancelBtn').onclick=closeModal;
+    $('#confirmUseBtn').onclick=()=>{
+      const form=$('#useForm'); if(!form.reportValidity()) return;
+      const qty=Math.max(1,clampNum(form.qty.value));
+      if(qty>part.tableQty && !confirm(`This will make the open / loose estimate negative by ${fmt(qty-part.tableQty)}. Continue?`)) return;
+      const deltas=[makeDelta(part.id,'tableQty',-qty)]; applyDeltas(deltas);
+      addTransaction('use','Parts used',`${part.name}: ${fmt(qty)} pieces${form.note.value.trim()?` · ${form.note.value.trim()}`:''}`,deltas);
+      saveState(); closeModal(); toast('Use recorded');
+    };
+  }
+
+  function setCountsModal(part) {
+    const oldBoxes = Math.max(0, clampNum(part.unopenedBoxes));
+    const oldOpenLoose = Math.max(0, clampNum(part.tableQty));
+    openModal({
+      eyebrow:'EDIT INVENTORY TOTALS',
+      title:`Set Counts for ${part.name}`,
+      body:`<form id="setCountsForm" class="form-grid">
+        <div class="field"><label>Unopened boxes</label><input name="unopenedBoxes" type="number" min="0" step="1" required value="${oldBoxes}"></div>
+        <div class="field"><label>Open / loose pieces estimate</label><input name="openLoose" type="number" min="0" step="1" required value="${oldOpenLoose}"></div>
+        <div class="field full"><label>Reason</label><select name="reason">
+          <option>Open-box estimate updated</option>
+          <option>Count correction</option>
+          <option>Cycle count</option>
+          <option>Scrap / damaged</option>
+          <option>Returned or moved</option>
+          <option>Other</option>
+        </select></div>
+        <div class="field full"><label>Note</label><input name="note" maxlength="100" placeholder="Optional"></div>
+        <div id="setCountsPreview" class="receipt-total field full">${fmt(partTotal(part))} estimated pieces after current counts</div>
+      </form>`,
+      footer:`<button id="cancelBtn" class="secondary">Cancel</button><button id="confirmSetCountsBtn" class="primary">Save Counts</button>`
+    });
+    const form = $('#setCountsForm');
+    const updatePreview = () => {
+      const boxes = Math.max(0, clampNum(form.unopenedBoxes.value));
+      const openLoose = Math.max(0, clampNum(form.openLoose.value));
+      $('#setCountsPreview').textContent = `${fmt((boxes * part.boxQty) + openLoose)} estimated pieces after update`;
+    };
+    form.oninput = updatePreview;
+    $('#cancelBtn').onclick = closeModal;
+    $('#confirmSetCountsBtn').onclick = () => {
+      if (!form.reportValidity()) return;
+      const nextBoxes = Math.max(0, clampNum(form.unopenedBoxes.value));
+      const nextOpenLoose = Math.max(0, clampNum(form.openLoose.value));
+      const deltas = [
+        makeDelta(part.id, 'unopenedBoxes', nextBoxes - oldBoxes),
+        makeDelta(part.id, 'tableQty', nextOpenLoose - oldOpenLoose)
+      ].filter(delta => delta.delta !== 0);
+      if (!deltas.length) return toast('No count changes to save');
+      applyDeltas(deltas);
+      const note = form.note.value.trim();
+      addTransaction(
+        'countSet',
+        form.reason.value,
+        `${part.name}: unopened ${fmt(oldBoxes)} → ${fmt(nextBoxes)} boxes · open/loose ${fmt(oldOpenLoose)} → ${fmt(nextOpenLoose)} pieces${note ? ` · ${note}` : ''}`,
+        deltas,
+        { category:'changed' }
+      );
+      saveState();
+      closeModal();
+      toast('Inventory totals updated');
+    };
+  }
+
+  function assemblyOptions(selected = '') {
+    return `<option value="">Select assembly</option>` + state.assemblies
+      .slice().sort((a,b)=>a.name.localeCompare(b.name))
+      .map(a => `<option value="${a.id}" ${a.id===selected?'selected':''}>${esc(a.name)}</option>`).join('');
+  }
+
+  function assemblyItemRowHtml(index, item = {}) {
+    return `<div class="assembly-item-row" data-row="${index}">
+      <div class="form-grid">
+        <div class="field"><label>Hardware / part</label><select class="a-part" required>${partOptions(item.partId || '')}</select></div>
+        <div class="field"><label>Needed per finished unit</label><input class="a-qty" type="number" min="1" step="1" required value="${item.qty ?? ''}" placeholder="Example: 4"></div>
+      </div>
+      <button type="button" class="remove-assembly-item">Remove line</button>
+    </div>`;
+  }
+
+  function manageAssembliesModal() {
+    if (!state.parts.length) {
+      toast('Add your parts before creating an assembly recipe');
+      return addPartModal();
+    }
+    const cards = state.assemblies.length ? state.assemblies
+      .slice().sort((a,b)=>a.name.localeCompare(b.name))
+      .map(a => `<article class="assembly-card" data-assembly-id="${a.id}">
+        <div>
+          <h3>${esc(a.name)}</h3>
+          <p>${a.items.map(item => {
+            const part = state.parts.find(p=>p.id===item.partId);
+            return `${fmt(item.qty)} × ${esc(part?.name || 'Deleted part')}`;
+          }).join(' · ') || 'No hardware configured'}</p>
+        </div>
+        <div class="button-row">
+          <button class="secondary small" data-assembly-action="edit">Edit</button>
+          <button class="danger small" data-assembly-action="delete">Delete</button>
+        </div>
+      </article>`).join('') : `<div class="empty-state show compact"><h2>No recipes yet</h2><p>Create an assembly and list the hardware needed for one finished unit.</p></div>`;
+
+    openModal({
+      eyebrow:'ASSEMBLY SETUP', title:'Assembly Recipes',
+      body:`<div class="assembly-list">${cards}</div>`,
+      footer:`<button id="closeRecipesBtn" class="secondary">Close</button><button id="addAssemblyBtn" class="primary">+ New Recipe</button>`
+    });
+    $('#closeRecipesBtn').onclick=closeModal;
+    $('#addAssemblyBtn').onclick=()=>editAssemblyModal();
+    $$('.assembly-card').forEach(card=>card.onclick=e=>{
+      const btn=e.target.closest('[data-assembly-action]'); if(!btn) return;
+      const assembly=state.assemblies.find(a=>a.id===card.dataset.assemblyId); if(!assembly) return;
+      if(btn.dataset.assemblyAction==='edit') return editAssemblyModal(assembly);
+      if(!confirm(`Delete the ${assembly.name} recipe? Inventory history will remain.`)) return;
+      state.assemblies=state.assemblies.filter(a=>a.id!==assembly.id);
+      addTransaction('assembly','Assembly recipe deleted',assembly.name,[]);
+      saveState(); toast('Recipe deleted'); manageAssembliesModal();
+    });
+  }
+
+  function editAssemblyModal(assembly = null) {
+    const editing=Boolean(assembly);
+    const items=assembly?.items?.length ? assembly.items : [{}];
+    openModal({
+      eyebrow: editing ? 'EDIT RECIPE' : 'NEW RECIPE', title: editing ? `Edit ${assembly.name}` : 'Create Assembly Recipe',
+      body:`<form id="assemblyRecipeForm">
+        <div class="field full"><label>Assembly name</label><input id="assemblyName" required maxlength="80" value="${esc(assembly?.name || '')}" placeholder="Example: Door Frame Assembly"></div>
+        <div class="field full" style="margin-top:12px"><label>Optional note</label><input id="assemblyNote" maxlength="120" value="${esc(assembly?.note || '')}" placeholder="Model, station, or job note"></div>
+        <div class="recipe-heading"><strong>Hardware needed for one finished unit</strong></div>
+        <div id="assemblyItems">${items.map((item,i)=>assemblyItemRowHtml(i,item)).join('')}</div>
+        <button id="addAssemblyItemBtn" class="secondary wide" type="button">+ Add Hardware Line</button>
+      </form>`,
+      footer:`<button id="cancelBtn" class="secondary">Cancel</button><button id="saveAssemblyBtn" class="primary">Save Recipe</button>`
+    });
+
+    const itemsWrap=$('#assemblyItems');
+    const bind=()=>{
+      $$('.assembly-item-row',itemsWrap).forEach(row=>{
+        $('.remove-assembly-item',row).onclick=()=>{
+          if($$('.assembly-item-row',itemsWrap).length===1) return toast('A recipe needs at least one hardware line');
+          row.remove();
+        };
+      });
+    };
+    $('#addAssemblyItemBtn').onclick=()=>{
+      const index=$$('.assembly-item-row',itemsWrap).length;
+      itemsWrap.insertAdjacentHTML('beforeend',assemblyItemRowHtml(index,{}));
+      bind();
+      $('.assembly-item-row:last-child',itemsWrap).scrollIntoView({behavior:'smooth',block:'center'});
+    };
+    $('#cancelBtn').onclick=manageAssembliesModal;
+    $('#saveAssemblyBtn').onclick=()=>{
+      const form=$('#assemblyRecipeForm'); if(!form.reportValidity()) return;
+      const name=$('#assemblyName').value.trim();
+      const rows=$$('.assembly-item-row',itemsWrap);
+      const selected=new Set();
+      const recipeItems=[];
+      for(const row of rows){
+        const partId=$('.a-part',row).value;
+        const qty=clampNum($('.a-qty',row).value);
+        if(!partId || qty<=0) return toast('Choose a part and quantity for every hardware line');
+        if(selected.has(partId)) return toast('Each part should appear only once in a recipe');
+        selected.add(partId); recipeItems.push({partId,qty});
+      }
+      if(editing){ assembly.name=name; assembly.note=$('#assemblyNote').value.trim(); assembly.items=recipeItems; }
+      else state.assemblies.push({id:uid(),name,note:$('#assemblyNote').value.trim(),items:recipeItems});
+      addTransaction('assembly',editing?'Assembly recipe updated':'Assembly recipe added',name,[]);
+      saveState(); toast(editing?'Recipe updated':'Recipe created'); manageAssembliesModal();
+    };
+    bind();
+  }
+
+  function recordAssembliesModal() {
+    if (!state.assemblies.length) {
+      toast('Create an assembly recipe first');
+      return manageAssembliesModal();
+    }
+    openModal({
+      eyebrow:'PRODUCTION', title:'Record Assemblies',
+      body:`<form id="assemblyForm" class="form-grid">
+        <div class="field full"><label>Assembly</label><select name="assemblyId" required>${assemblyOptions()}</select></div>
+        <div class="field"><label>Finished units completed</label><input name="count" type="number" min="1" step="1" value="1" required></div>
+        <div class="field"><label>Job / shift note</label><input name="note" maxlength="100" placeholder="Optional"></div>
+        <div id="assemblyPreview" class="field full scan-status">Select an assembly to review the hardware use.</div>
+      </form>`,
+      footer:`<button id="cancelBtn" class="secondary">Cancel</button><button id="confirmAssemblyBtn" class="primary">Review & Record</button>`
+    });
+    const form=$('#assemblyForm');
+    const updatePreview=()=>{
+      const assembly=state.assemblies.find(a=>a.id===form.assemblyId.value);
+      const count=Math.max(1,clampNum(form.count.value,1));
+      if(!assembly){ $('#assemblyPreview').innerHTML='Select an assembly to review the hardware use.'; return; }
+      $('#assemblyPreview').innerHTML=`<strong>${esc(assembly.name)} × ${fmt(count)}</strong><div class="bom-preview">${assembly.items.map(item=>{
+        const part=state.parts.find(p=>p.id===item.partId);
+        const needed=count*item.qty;
+        const short=!part || part.tableQty<needed;
+        return `<div class="bom-line ${short?'shortage':''}"><span>${esc(part?.name || 'Deleted part')}</span><strong>${fmt(needed)} used · ${fmt(part?.tableQty || 0)} open/loose</strong></div>`;
+      }).join('')}</div>`;
+    };
+    form.oninput=updatePreview;
+    $('#cancelBtn').onclick=closeModal;
+    $('#confirmAssemblyBtn').onclick=()=>{
+      if(!form.reportValidity()) return;
+      const assembly=state.assemblies.find(a=>a.id===form.assemblyId.value); if(!assembly) return;
+      const count=Math.max(1,clampNum(form.count.value));
+      const missing=assembly.items.filter(item=>!state.parts.some(p=>p.id===item.partId));
+      if(missing.length) return alert('This recipe contains a deleted part. Edit the recipe before recording production.');
+      const lines=assembly.items.map(item=>{
+        const part=state.parts.find(p=>p.id===item.partId);
+        return {part,qty:count*item.qty};
+      });
+      const shortages=lines.filter(line=>line.part.tableQty<line.qty);
+      const summary=lines.map(line=>`${line.part.name}: ${fmt(line.qty)}`).join('\n');
+      const warning=shortages.length?`\n\nWarning: these open/loose estimates will become negative: ${shortages.map(x=>x.part.name).join(', ')}.`:'';
+      if(!confirm(`Record ${fmt(count)} × ${assembly.name}?\n\nHardware to subtract:\n${summary}${warning}`)) return;
+      const deltas=lines.map(line=>makeDelta(line.part.id,'tableQty',-line.qty));
+      applyDeltas(deltas);
+      addTransaction('assembly','Assemblies completed',`${fmt(count)} × ${assembly.name}${form.note.value.trim()?` · ${form.note.value.trim()}`:''}`,deltas,{assemblyId:assembly.id});
+      saveState(); closeModal(); toast('Assemblies recorded');
+    };
+    updatePreview();
+  }
+
+  function helpGuideModal() {
+    openModal({
+      eyebrow:'SETTINGS & SUPPORT', title:'Accutek Inventory Help Guide',
+      body:`<div class="help-guide">
+        <details open><summary>1. Filter the totals at the top</summary><p>Use <strong>Totals shown for</strong> to choose All Inventory, one parent part folder, or one exact hardware item. The Hardware, Unopened Boxes, Open / Loose, and Estimated Pieces cards update only for that selection, so unrelated items such as Barrels and Bolts are not mixed unless you choose All Inventory.</p></details>
+        <details><summary>2. Use light or dark mode</summary><p>Open Settings → Appearance and choose Light, Dark, or Use phone setting.</p></details>
+        <details><summary>3. Create parent folders and child hardware</summary><p>Open Inventory and tap <strong>+ Folder</strong> for the main part, such as C3S. Open that folder and tap <strong>+ Hardware</strong> for every child item used with it. Existing items from older versions are placed safely in <strong>Unfiled Hardware</strong> until you edit and move them.</p></details>
+        <details><summary>4. Add hardware from its label</summary><p>Open the correct parent folder, tap <strong>+ Hardware</strong>, then <strong>Take Label Photo</strong>. Review the selected parent folder, name, pieces per box, and boxes per skid before saving.</p></details>
+        <details><summary>5. Quick add or remove boxes and skids</summary><p>Each hardware card has a separate <strong>− 1 Box / + 1 Box</strong> row and <strong>− 1 Skid / + 1 Skid</strong> row. These change unopened inventory immediately and create dated History records.</p></details>
+        <details><summary>6. Enter open-box or loose-piece estimates</summary><p>Tap <strong>Set Counts</strong> on a hardware card. Enter the current unopened-box count and your best estimate of pieces in opened boxes, bins, or on the table. You do not have to record every individual box opening.</p></details>
+        <details><summary>7. Record use or edit totals</summary><p>Tap <strong>Record Use</strong> to subtract pieces from the open/loose estimate. Tap <strong>Set Counts</strong> to enter the real unopened-box count and a fresh open/loose estimate with a reason and note.</p></details>
+        <details><summary>8. Receive a full skid</summary><p>Open Receive → <strong>Receive Full Skid</strong>. Choose the hardware and number of full skids. Hardware choices are grouped by their parent folders.</p></details>
+        <details><summary>9. Receive a partial or mixed skid</summary><p>Use <strong>Custom Receipt</strong>. Add one line for every hardware item on the skid, including its box count and any open or loose pieces. Mixed skids are saved as one receipt.</p></details>
+        <details><summary>10. Scan a skid label</summary><p>Tap <strong>Scan Skid Label</strong>. The Android app uses offline OCR and improved matching for short names. Review the matched hardware and quantities before confirming.</p></details>
+        <details><summary>11. Read organized History</summary><p>Use All, Added, Removed, or Changes. Open a hardware record, then open its date folder to see exact times, notes, corrections, and Undo buttons.</p></details>
+        <details><summary>12. Create a private work-photo set</summary><p>Open <strong>Photos</strong> and tap <strong>+ Photo Set</strong>. Choose the parent part folder and optionally enter a work order, batch, run, lot, skid, or customer-job number. This reference only organizes the photo set and does not affect inventory. The app expects five process photos by default.</p></details>
+        <details><summary>13. Keep work photos out of the personal camera roll</summary><p>Photos taken through the installed Android app are stored inside Accutek Inventory rather than Camera/DCIM. Existing work photos already in your personal gallery must still be removed manually.</p></details>
+        <details><summary>14. Import and categorize existing work photos</summary><p>Open Photos and tap <strong>Import Photos</strong>. Choose a new or existing photo set, select several gallery photos, then assign each one a process stage and note. Accutek Inventory copies them into private work storage; confirm the copies before deleting the originals from your gallery.</p></details>
+        <details><summary>15. Email or export a photo set</summary><p>Set the company email under Settings → <strong>Work photo email</strong>. In Photos, tap <strong>Email</strong> to open your email app with that set attached. Export copies before uninstalling the app.</p></details>
+        <details><summary>16. Create assembly recipes</summary><p>Go to Settings → <strong>Manage Recipes</strong>. Create a named assembly, then list how many child hardware items are needed for one finished unit.</p></details>
+        <details><summary>17. Record completed assemblies</summary><p>Go to Settings → <strong>Record Assemblies</strong>. Select the assembly and finished quantity. Review every hardware deduction before confirming.</p></details>
+        <details><summary>18. Undo a mistake</summary><p>Open History, locate the hardware and date, then tap <strong>Undo</strong>. Undo reverses that transaction’s inventory changes.</p></details>
+        <details><summary>19. Backup and restore</summary><p>Open Settings and regularly download a data backup. Backups preserve parent folders, hardware, inventory, history, photo-set records, and settings. Export native full-size work photos separately before uninstalling.</p></details>
+      </div>`,
+      footer:`<button id="closeHelpBtn" class="primary">Done</button>`
+    });
+    $('#closeHelpBtn').onclick=closeModal;
+  }
+
+  async function compressImage(file, max = 1000, quality = 0.68) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
+    return canvas.toDataURL('image/jpeg',quality);
+  }
+
+  function editDistance(a, b) {
+    const left = String(a || ''), right = String(b || '');
+    const row = Array.from({length:right.length + 1}, (_,i) => i);
+    for (let i = 1; i <= left.length; i++) {
+      let previous = row[0];
+      row[0] = i;
+      for (let j = 1; j <= right.length; j++) {
+        const old = row[j];
+        row[j] = Math.min(row[j] + 1, row[j - 1] + 1, previous + (left[i - 1] === right[j - 1] ? 0 : 1));
+        previous = old;
+      }
+    }
+    return row[right.length];
+  }
+
+  function compactLabel(value) {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function bestPartMatch(text) {
+    const rawLines = String(text || '').split(/\n+/).map(cleanLabelLine).filter(Boolean);
+    const normalized = compactLabel(text);
+    let best = null, bestScore = 0;
+    for (const p of state.parts) {
+      const name = compactLabel(p.name);
+      if (!name) continue;
+      if (normalized.includes(name)) return p;
+      const candidateLines = rawLines.map(compactLabel).filter(Boolean);
+      let score = 0;
+      for (const line of candidateLines) {
+        if (line === name) score = Math.max(score, 1);
+        const distance = editDistance(line, name);
+        const similarity = 1 - (distance / Math.max(line.length, name.length, 1));
+        if (similarity > score) score = similarity;
+      }
+      const tokens = p.name.toLowerCase().split(/\s+/).filter(token => token.length > 1);
+      const tokenHits = tokens.filter(token => String(text || '').toLowerCase().includes(token)).length;
+      if (tokens.length) score = Math.max(score, tokenHits / tokens.length);
+      if (score > bestScore) { best = p; bestScore = score; }
+    }
+    return bestScore >= 0.68 ? best : null;
+  }
+
+  function parseLabelText(text) {
+    const parsed = parseNewPartLabelText(text);
+    const p = bestPartMatch(text);
+    const number = String.raw`([\d][\d,\s]*)`;
+    let boxes = firstLabelNumber(text, [
+      new RegExp(String.raw`(?:number\s*of\s*)?(?:boxes?|cartons?|cases?|ctns?|containers?)\s*(?:received|on\s*(?:skid|pallet)|count|qty|quantity)?\s*[:#=-]?\s*${number}`, 'i'),
+      new RegExp(String.raw`${number}\s*(?:boxes?|cartons?|cases?|ctns?|containers?)\b`, 'i')
+    ]);
+    const boxQty = p?.boxQty || parsed.boxQty || '';
+    const total = parsed.totalQty || firstLabelNumber(text, [
+      new RegExp(String.raw`(?:qty|quantity|total\s*pieces?|total\s*pcs?|total\s*units?)\s*[:#=-]?\s*${number}`, 'i')
+    ]);
+    let loose = 0;
+    if (!boxes && total && boxQty) {
+      boxes = Math.floor(total / boxQty);
+      loose = total - (boxes * boxQty);
+    } else if (total && boxes && boxQty) {
+      loose = Math.max(0, total - (boxes * boxQty));
+    }
+    return {
+      partId: p?.id || '',
+      boxes,
+      boxQty,
+      loose,
+      detectedName: parsed.name || '',
+      totalQty: total || 0
+    };
+  }
+
+  async function handleLabelPhoto(file) {
+    if (!file) return;
+    if (!state.parts.length) { toast('Add your hardware before scanning a label'); return addPartModal(); }
+    let photo = '';
+    try { photo = await compressImage(file); } catch { photo = URL.createObjectURL(file); }
+    let text = '';
+    let status = 'Photo captured. Review and enter the label quantities.';
+    try {
+      const detection = await detectImageText(file);
+      text = detection.text;
+      status = detection.supported
+        ? (text ? 'Two-pass text reading finished. Confirm the matched part and quantities.' : status)
+        : 'Photo saved. Automatic label reading is not available in this browser test, so confirm the fields manually.';
+    } catch {
+      status = 'The photo was saved, but the text could not be read automatically. Confirm the fields manually.';
+    }
+    const prefill = parseLabelText(text);
+    customReceiptModal([prefill], photo);
+    els.modalBody.insertAdjacentHTML('afterbegin', `<div class="scan-status">${esc(status)}${text ? `<details><summary>Detected text</summary><pre style="white-space:pre-wrap">${esc(text)}</pre></details>` : ''}</div>`);
+  }
+
+
+  const nativeWorkPhotoCallbacks = new Map();
+  window.onNativeWorkPhotoSaved = (requestId, result, error) => {
+    const pending = nativeWorkPhotoCallbacks.get(requestId);
+    if (!pending) return;
+    clearTimeout(pending.timeout);
+    nativeWorkPhotoCallbacks.delete(requestId);
+    if (error) pending.reject(new Error(error));
+    else pending.resolve(result || null);
+  };
+
+  function requestNativeImportPreview(dataUrl) {
+    const requestId = uid();
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        nativeWorkPhotoCallbacks.delete(requestId);
+        reject(new Error('Preparing the photo preview timed out'));
+      }, 60000);
+      nativeWorkPhotoCallbacks.set(requestId, { resolve, reject, timeout });
+      window.SkidCountNative.prepareImportPreview(requestId, dataUrl);
+    });
+  }
+
+  function requestNativePhotoStorageStatus(paths) {
+    const requestId = uid();
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        nativeWorkPhotoCallbacks.delete(requestId);
+        reject(new Error('Reading photo storage timed out'));
+      }, 60000);
+      nativeWorkPhotoCallbacks.set(requestId, { resolve, reject, timeout });
+      window.SkidCountNative.getPhotoStorageStatus(requestId, JSON.stringify(paths || []));
+    });
+  }
+
+  function requestNativeLegacyMigration(photos) {
+    const requestId = uid();
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        nativeWorkPhotoCallbacks.delete(requestId);
+        reject(new Error('Migrating older photos timed out'));
+      }, 120000);
+      nativeWorkPhotoCallbacks.set(requestId, { resolve, reject, timeout });
+      window.SkidCountNative.migrateLegacyWorkPhotos(requestId, JSON.stringify(photos || []));
+    });
+  }
+
+  function formatBytes(bytes) {
+    const value = Math.max(0, Number(bytes) || 0);
+    if (value < 1024) return `${Math.round(value)} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(value < 10 * 1024 ? 1 : 0)} KB`;
+    if (value < 1024 * 1024 * 1024) return `${(value / 1024 / 1024).toFixed(value < 10 * 1024 * 1024 ? 1 : 0)} MB`;
+    return `${(value / 1024 / 1024 / 1024).toFixed(2)} GB`;
+  }
+
+  function previewCacheBytes() {
+    return state.workPhotos.reduce((sum, photo) => {
+      const value = String(photo.thumbnail || photo.browserDataUrl || '');
+      if (!value) return sum;
+      const comma = value.indexOf(',');
+      const encoded = comma >= 0 ? value.slice(comma + 1) : value;
+      return sum + Math.floor(encoded.length * 0.75);
+    }, 0);
+  }
+
+  function duplicateImportCount() {
+    const seen = new Set();
+    let duplicates = 0;
+    state.workPhotos.forEach(photo => {
+      const key = String(photo.importKey || '').trim();
+      if (!key) return;
+      if (seen.has(key)) duplicates++;
+      else seen.add(key);
+    });
+    return duplicates;
+  }
+
+  async function photoStorageModal() {
+    openModal({
+      eyebrow:'PHOTO STORAGE & BACKUP',
+      title:'Work Photo Storage',
+      body:`<div class="work-photo-intro">
+          <strong>One master copy:</strong> new work photos live in <b>Downloads/Accutek Inventory/Work Photos</b>. They are visible in Files, separate from Camera/DCIM, and survive uninstalling the app.
+        </div>
+        <div id="photoStorageStatus" class="photo-storage-grid">
+          <article class="photo-storage-stat"><span>Status</span><strong>Checking…</strong></article>
+        </div>
+        <article class="settings-card">
+          <h3>Folder location</h3>
+          <p class="photo-storage-location">Internal storage › Download › Accutek Inventory › Work Photos</p>
+          <p>Imported gallery photos keep their original until you delete it yourself. Accutek Inventory never silently removes personal photos.</p>
+        </article>`,
+      footer:`<button id="closeStorageBtn" class="secondary">Close</button>
+        <button id="openGalleryBtn" class="secondary">Personal Gallery</button>
+        <button id="clearPhotoCacheBtn" class="secondary">Clear Preview Cache</button>
+        <button id="migratePrivatePhotosBtn" class="secondary hidden">Migrate Older Photos</button>
+        <button id="openWorkFolderBtn" class="primary">Open Work Folder</button>`
+    });
+
+    const statusWrap = $('#photoStorageStatus');
+    const migrateBtn = $('#migratePrivatePhotosBtn');
+
+    async function refreshStatus() {
+      const paths = state.workPhotos.map(photo => photo.path).filter(Boolean);
+      let status = {
+        persistentCount: state.workPhotos.filter(photo => photo.persistentStorage).length,
+        legacyCount: state.workPhotos.filter(photo => photo.privateStorage && !photo.persistentStorage).length,
+        missingCount: state.workPhotos.filter(photo => !photo.path).length,
+        totalBytes: state.workPhotos.reduce((sum, photo) => sum + clampNum(photo.fileSizeBytes), 0)
+      };
+      if (window.SkidCountNative?.getPhotoStorageStatus) {
+        try {
+          status = { ...status, ...(await requestNativePhotoStorageStatus(paths) || {}) };
+        } catch (error) {
+          console.warn(error);
+        }
+      }
+      const unfiled = state.workPhotos.filter(photo => !photo.partId || !state.folders.some(folder => folder.id === photo.partId)).length;
+      const duplicates = duplicateImportCount();
+      const cacheBytes = previewCacheBytes();
+      const lastBackup = state.photoSettings.lastBackupAt
+        ? new Date(state.photoSettings.lastBackupAt).toLocaleString()
+        : 'Not yet';
+      statusWrap.innerHTML = `
+        <article class="photo-storage-stat"><span>Visible master files</span><strong class="${status.persistentCount ? 'storage-good' : ''}">${fmt(status.persistentCount || 0)}</strong></article>
+        <article class="photo-storage-stat"><span>Older private files</span><strong class="${status.legacyCount ? 'storage-warning' : ''}">${fmt(status.legacyCount || 0)}</strong></article>
+        <article class="photo-storage-stat"><span>Total master size</span><strong>${formatBytes(status.totalBytes || 0)}</strong></article>
+        <article class="photo-storage-stat"><span>Preview cache</span><strong>${formatBytes(cacheBytes)}</strong></article>
+        <article class="photo-storage-stat"><span>Missing files</span><strong class="${status.missingCount ? 'storage-warning' : ''}">${fmt(status.missingCount || 0)}</strong></article>
+        <article class="photo-storage-stat"><span>Duplicate imports</span><strong class="${duplicates ? 'storage-warning' : ''}">${fmt(duplicates)}</strong></article>
+        <article class="photo-storage-stat"><span>Unfiled photos</span><strong class="${unfiled ? 'storage-warning' : ''}">${fmt(unfiled)}</strong></article>
+        <article class="photo-storage-stat"><span>Last data backup</span><strong style="font-size:12px">${esc(lastBackup)}</strong></article>`;
+      migrateBtn.classList.toggle('hidden', !(status.legacyCount > 0));
+    }
+
+    $('#closeStorageBtn').onclick = closeModal;
+    $('#openWorkFolderBtn').onclick = () => {
+      state.photoSettings.lastFolderOpenedAt = nowIso();
+      persistState();
+      if (window.SkidCountNative?.openWorkPhotoFolder) {
+        window.SkidCountNative.openWorkPhotoFolder();
+      } else {
+        toast('The installed Android app can open the Work Photos folder');
+      }
+    };
+    $('#openGalleryBtn').onclick = () => {
+      if (window.SkidCountNative?.openPersonalGallery) window.SkidCountNative.openPersonalGallery();
+      else toast('Open your phone Gallery to remove verified originals');
+    };
+    $('#clearPhotoCacheBtn').onclick = async () => {
+      const count = state.workPhotos.filter(photo => photo.path && (photo.thumbnail || photo.browserDataUrl)).length;
+      if (!count) return toast('The preview cache is already empty');
+      if (!confirm(`Clear ${count} cached preview${count===1?'':'s'}? Full-size work photos will not be deleted.`)) return;
+      state.workPhotos.forEach(photo => {
+        if (photo.path) {
+          photo.thumbnail = '';
+          photo.browserDataUrl = '';
+        }
+      });
+      persistState();
+      renderWorkPhotos();
+      toast('Preview cache cleared; master photos were kept');
+      refreshStatus();
+    };
+    migrateBtn.onclick = async () => {
+      const legacy = state.workPhotos
+        .filter(photo => photo.path && photo.privateStorage && !photo.persistentStorage)
+        .map(photo => ({
+          id:photo.id,
+          path:photo.path,
+          partName:photo.partName,
+          stage:photo.stage,
+          setName:photo.setName,
+          createdAt:photo.createdAt
+        }));
+      if (!legacy.length) return toast('There are no older private photos to migrate');
+      if (!confirm(`Move ${legacy.length} older photo${legacy.length===1?'':'s'} into the visible Work Photos folder? The private original is deleted only after its visible copy is saved.`)) return;
+      migrateBtn.disabled = true;
+      migrateBtn.textContent = 'Migrating…';
+      try {
+        const result = await requestNativeLegacyMigration(legacy);
+        const migrated = Array.isArray(result?.migrated) ? result.migrated : [];
+        migrated.forEach(saved => {
+          const photo = state.workPhotos.find(item => item.id === saved.id);
+          if (!photo) return;
+          photo.path = saved.path || photo.path;
+          photo.filename = saved.filename || photo.filename;
+          photo.fileSizeBytes = clampNum(saved.fileSizeBytes);
+          photo.privateStorage = false;
+          photo.persistentStorage = true;
+        });
+        saveState();
+        toast(`${migrated.length} older photo${migrated.length===1?'':'s'} migrated`);
+        refreshStatus();
+      } catch (error) {
+        alert(`The older photos could not all be migrated. ${error?.message || ''}`);
+      } finally {
+        migrateBtn.disabled = false;
+        migrateBtn.textContent = 'Migrate Older Photos';
+      }
+    };
+
+    refreshStatus();
+  }
+
+  function requestNativeWorkPhotoSave(dataUrl, meta) {
+    const requestId = uid();
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        nativeWorkPhotoCallbacks.delete(requestId);
+        reject(new Error('Saving the work photo timed out'));
+      }, 60000);
+      nativeWorkPhotoCallbacks.set(requestId, { resolve, reject, timeout });
+      window.SkidCountNative.saveWorkPhoto(
+        requestId,
+        dataUrl,
+        meta.partId || '',
+        meta.partName || '',
+        meta.stage || '',
+        meta.notes || '',
+        meta.setId || '',
+        meta.setName || ''
+      );
+    });
+  }
+
+  function standardPhotoStages() {
+    return [
+      '1 - Received',
+      '2 - Before process',
+      '3 - In process',
+      '4 - Completed',
+      '5 - Final / shipping'
+    ];
+  }
+
+  function photoImportKey(file) {
+    return `${file.name}|${file.size}|${file.lastModified}`;
+  }
+
+  function existingPhotoSetOptions() {
+    return state.workPhotoSets
+      .slice()
+      .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))
+      .map(set=>`<option value="${set.id}">${esc(photoSetLabel(set))}</option>`)
+      .join('');
+  }
+
+  function importExistingPhotosModal() {
+    if (!state.folders.length) {
+      toast('Add a parent part folder before importing work photos');
+      return folderModal(null, () => importExistingPhotosModal());
+    }
+    const hasSets = state.workPhotoSets.length > 0;
+    openModal({
+      eyebrow:'IMPORT WORK PHOTOS',
+      title:'Choose Where the Photos Belong',
+      body:`<form id="photoImportSetupForm" class="form-grid">
+        <div class="field full"><label>Destination</label><select id="photoImportDestination" name="destination">
+          <option value="new">Create a new photo set</option>
+          ${hasSets ? `<optgroup label="Existing photo sets">${existingPhotoSetOptions()}</optgroup>` : ''}
+        </select></div>
+        <div id="newImportSetFields" class="field full">
+          <div class="form-grid">
+            <div class="field full"><label>Parent part folder</label><select name="partId">${folderOptions()}</select></div>
+            <div class="field full"><label>Work order / batch / run</label><input name="jobNo" maxlength="50" placeholder="Optional company tracking number"><div class="help">Use the number your company uses for this production batch, work order, lot, skid, or customer job. Leave it blank when there is no tracking number. It only organizes photos and email subjects; it does not change inventory.</div></div>
+            <div class="field"><label>Set date</label><input name="setDate" type="date" value="${localDateKey(nowIso())}"></div>
+            <div class="field full"><label>Set note</label><textarea name="setNote" maxlength="250" placeholder="Optional"></textarea></div>
+          </div>
+        </div>
+        <div class="field full"><div class="work-photo-intro"><strong>What happens:</strong> select several photos, assign a process stage to each one, then Accutek Inventory creates one master work copy in Downloads/Accutek Inventory/Work Photos. Your original gallery photo remains until you verify the work copy and delete the original yourself.</div></div>
+      </form>`,
+      footer:`<button id="cancelBtn" class="secondary">Cancel</button><button id="chooseImportPhotosBtn" class="primary">Choose Photos</button>`
+    });
+    const form = $('#photoImportSetupForm');
+    const destination = $('#photoImportDestination');
+    const newFields = $('#newImportSetFields');
+    destination.onchange = () => newFields.classList.toggle('hidden', destination.value !== 'new');
+    $('#cancelBtn').onclick = closeModal;
+    $('#chooseImportPhotosBtn').onclick = () => {
+      if (!form.reportValidity()) return;
+      const data = Object.fromEntries(new FormData(form));
+      if (destination.value === 'new') {
+        const folder = state.folders.find(item=>item.id===data.partId);
+        if (!folder) return toast('Choose a parent part folder');
+        pendingPhotoImportSetup = {
+          destination:'new',
+          partId:folder.id,
+          partName:folder.name,
+          jobNo:String(data.jobNo || '').trim(),
+          setDate:String(data.setDate || localDateKey(nowIso())),
+          note:String(data.setNote || '').trim()
+        };
+      } else {
+        const set = state.workPhotoSets.find(item=>item.id===destination.value);
+        if (!set) return toast('Choose a valid photo set');
+        pendingPhotoImportSetup = { destination:'existing', setId:set.id };
+      }
+      closeModal();
+      els.workPhotoImportInput.click();
+    };
+  }
+
+  function importStageOptions(selected) {
+    const stages = standardPhotoStages();
+    const extras = ['Additional process photo','Inspection / issue','Measurement / detail','Packaging / label'];
+    return [...stages,...extras].map(stage=>`<option ${stage===selected?'selected':''}>${esc(stage)}</option>`).join('');
+  }
+
+  function buildImportSet(setup, files) {
+    if (setup.destination === 'existing') {
+      return state.workPhotoSets.find(item=>item.id===setup.setId) || null;
+    }
+    const firstDate = files
+      .map(file=>Number(file.lastModified) || 0)
+      .filter(Boolean)
+      .sort((a,b)=>a-b)[0];
+    const chosenDate = setup.setDate
+      ? new Date(`${setup.setDate}T12:00:00`)
+      : (firstDate ? new Date(firstDate) : new Date());
+    return {
+      id:uid(),
+      partId:setup.partId,
+      partName:setup.partName,
+      jobNo:setup.jobNo || '',
+      note:setup.note || '',
+      createdAt:Number.isNaN(chosenDate.getTime()) ? nowIso() : chosenDate.toISOString(),
+      closed:false
+    };
+  }
+
+  function categorizeImportedPhotosModal(files, setup) {
+    const duplicateKeys = new Set(state.workPhotos.map(photo=>photo.importKey).filter(Boolean));
+    const unique = files.filter(file=>!duplicateKeys.has(photoImportKey(file))).slice(0,20);
+    const duplicates = files.length - unique.length;
+    if (!unique.length) {
+      pendingPhotoImportSetup = null;
+      return toast(duplicates ? 'Those photos were already imported' : 'No photos were selected');
+    }
+    const set = buildImportSet(setup, unique);
+    if (!set) return toast('That photo set could not be found');
+    const stages = standardPhotoStages();
+    const rows = unique.map((file,index)=>{
+      const sourceDate = file.lastModified ? new Date(file.lastModified) : new Date();
+      const selected = stages[index] || 'Additional process photo';
+      const heic = isHeicFile(file);
+      const preview = heic ? '' : URL.createObjectURL(file);
+      return `<article class="import-photo-row" data-import-index="${index}">
+        <div class="import-photo-preview">
+          <img data-import-preview="${index}" class="${preview ? '' : 'hidden'}" src="${preview}" alt="Selected work photo">
+          <div data-import-placeholder="${index}" class="import-preview-placeholder ${preview ? 'hidden' : ''}">${heic ? 'Preparing HEIC preview…' : 'Preparing preview…'}</div>
+        </div>
+        <div>
+          <h3>${esc(file.name || `Photo ${index+1}`)}</h3>
+          <div class="part-meta">${sourceDate.toLocaleString()} · ${Math.max(1,Math.round(file.size/1024))} KB</div>
+          <div class="import-photo-fields">
+            <label class="field"><span>Category / stage</span><select data-import-stage>${importStageOptions(selected)}</select></label>
+            <label class="field"><span>Note</span><input data-import-note maxlength="180" placeholder="Optional"></label>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+    openModal({
+      eyebrow:'CATEGORIZE IMPORTS',
+      title:`Review ${unique.length} Photo${unique.length===1?'':'s'}`,
+      body:`${duplicates ? `<div class="import-warning">${duplicates} duplicate photo${duplicates===1?' was':'s were'} skipped.</div>` : ''}
+        <div class="work-photo-intro"><strong>Destination:</strong> ${esc(photoSetLabel(set))}. Stages are assigned in order; change any stage or add a note before importing.</div>
+        <div id="importPhotoList" class="import-photo-list">${rows}</div>
+        <div id="importProgress" class="import-progress hidden"><strong>Importing…</strong><span>Preparing photos</span></div>`,
+      footer:`<button id="cancelBtn" class="secondary">Cancel</button><button id="confirmPhotoImportBtn" class="primary">Import ${unique.length}</button>`
+    });
+    async function hydrateImportPreview(file, index) {
+      const image = $(`[data-import-preview="${index}"]`);
+      const placeholder = $(`[data-import-placeholder="${index}"]`);
+      if (!image || !placeholder) return;
+
+      const showPreview = src => {
+        image.src = src;
+        image.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      };
+
+      if (!isHeicFile(file)) {
+        image.onerror = async () => {
+          image.onerror = null;
+          if (!window.SkidCountNative?.prepareImportPreview) {
+            image.classList.add('hidden');
+            placeholder.textContent = 'Preview unavailable in this browser';
+            placeholder.classList.remove('hidden');
+            return;
+          }
+          try {
+            const raw = await rawFileDataUrl(file);
+            const result = await requestNativeImportPreview(raw);
+            if (!result?.thumbnail) throw new Error('No preview was returned');
+            showPreview(result.thumbnail);
+          } catch {
+            image.classList.add('hidden');
+            placeholder.textContent = 'Preview unavailable; import may still work';
+            placeholder.classList.remove('hidden');
+          }
+        };
+        return;
+      }
+
+      if (!window.SkidCountNative?.prepareImportPreview) {
+        placeholder.textContent = 'HEIC preview requires the installed Android app';
+        return;
+      }
+
+      try {
+        const raw = await rawFileDataUrl(file);
+        const result = await requestNativeImportPreview(raw);
+        if (!result?.thumbnail) throw new Error('No preview was returned');
+        showPreview(result.thumbnail);
+      } catch {
+        placeholder.textContent = 'HEIC could not be previewed';
+      }
+    }
+
+    unique.forEach((file,index) => hydrateImportPreview(file,index));
+
+    $('#cancelBtn').onclick = closeModal;
+    $('#confirmPhotoImportBtn').onclick = async () => {
+      const assignments = unique.map((file,index)=>{
+        const row = $(`[data-import-index="${index}"]`);
+        return {
+          file,
+          stage:String(row.querySelector('[data-import-stage]').value || '').trim(),
+          notes:String(row.querySelector('[data-import-note]').value || '').trim(),
+          importKey:photoImportKey(file),
+          sourceName:file.name || '',
+          sourceCreatedAt:file.lastModified ? new Date(file.lastModified).toISOString() : nowIso()
+        };
+      });
+      await saveImportedPhotoBatch(set, assignments, setup.destination === 'new');
+    };
+  }
+
+  async function requestNativeImportedPhotoSave(dataUrl, meta) {
+    const requestId = uid();
+    return new Promise((resolve,reject)=>{
+      const timeout=setTimeout(()=>{
+        nativeWorkPhotoCallbacks.delete(requestId);
+        reject(new Error('Importing the work photo timed out'));
+      },90000);
+      nativeWorkPhotoCallbacks.set(requestId,{resolve,reject,timeout});
+      window.SkidCountNative.importWorkPhoto(
+        requestId,
+        dataUrl,
+        meta.partId || '',
+        meta.partName || '',
+        meta.stage || '',
+        meta.notes || '',
+        meta.setId || '',
+        meta.setName || '',
+        meta.sourceCreatedAt || '',
+        meta.sourceName || '',
+        meta.importKey || ''
+      );
+    });
+  }
+
+  async function saveImportedPhotoBatch(set, assignments, createSet) {
+    const confirmBtn = $('#confirmPhotoImportBtn');
+    const cancelBtn = $('#cancelBtn');
+    const progress = $('#importProgress');
+    confirmBtn.disabled = true;
+    cancelBtn.disabled = true;
+    progress.classList.remove('hidden');
+    if (createSet && !state.workPhotoSets.some(item=>item.id===set.id)) {
+      state.workPhotoSets.unshift(set);
+      addTransaction('photo','Work photo set created',photoSetLabel(set),[],{
+        category:'changed',partRefs:[{id:set.partId,name:set.partName}]
+      });
+      saveState();
+    }
+    let saved = 0;
+    const failures = [];
+    for (let index=0; index<assignments.length; index++) {
+      const item = assignments[index];
+      progress.querySelector('span').textContent = `Copying ${index+1} of ${assignments.length}: ${item.sourceName || item.stage}`;
+      try {
+        const meta = {
+          partId:set.partId,
+          partName:set.partName,
+          setId:set.id,
+          setName:set.jobNo ? `${set.partName} ${set.jobNo}` : `${set.partName} ${localDateKey(set.createdAt)}`,
+          stage:item.stage,
+          notes:item.notes,
+          sourceCreatedAt:item.sourceCreatedAt,
+          sourceName:item.sourceName,
+          importKey:item.importKey
+        };
+        let record;
+        if (window.SkidCountNative?.importWorkPhoto) {
+          let fullDataUrl;
+          try {
+            fullDataUrl = isHeicFile(item.file)
+              ? await rawFileDataUrl(item.file)
+              : await imageDataUrl(item.file,2800,0.9,false);
+          } catch {
+            fullDataUrl = await rawFileDataUrl(item.file);
+          }
+          record = await requestNativeImportedPhotoSave(fullDataUrl,meta);
+          if (!record) throw new Error('No photo record was returned');
+        } else {
+          if (isHeicFile(item.file)) throw new Error('HEIC import requires the installed Android app');
+          const browserDataUrl = await compressImage(item.file,760,0.5);
+          record = {
+            id:uid(), path:'', filename:item.sourceName || `import-${Date.now()}.jpg`,
+            createdAt:item.sourceCreatedAt, thumbnail:browserDataUrl, browserDataUrl,
+            privateStorage:false, persistentStorage:false, fileSizeBytes:item.file.size || 0, imported:true, sourceName:item.sourceName, importKey:item.importKey
+          };
+        }
+        state.workPhotos.push({
+          id:record.id || uid(), path:record.path || '', filename:record.filename || '',
+          partId:set.partId, partName:set.partName, stage:item.stage, notes:item.notes,
+          setId:set.id, setName:meta.setName, createdAt:record.createdAt || item.sourceCreatedAt || nowIso(),
+          thumbnail:record.thumbnail || '', browserDataUrl:record.browserDataUrl || '',
+          privateStorage:Boolean(record.privateStorage), persistentStorage:Boolean(record.persistentStorage),
+          fileSizeBytes:clampNum(record.fileSizeBytes), imported:true,
+          sourceName:item.sourceName, importKey:item.importKey
+        });
+        saved++;
+        saveState();
+      } catch (error) {
+        console.error(error);
+        failures.push(item.sourceName || `Photo ${index+1}`);
+      }
+    }
+    if (saved) {
+      addTransaction('photo','Existing work photos imported',`${set.partName}: ${saved} photo${saved===1?'':'s'} categorized into ${photoSetLabel(set)}`,[],{
+        category:'changed',partRefs:[{id:set.partId,name:set.partName}]
+      });
+      saveState();
+    }
+    pendingPhotoImportSetup = null;
+    closeModal();
+    if (!saved) return alert('None of the selected photos could be imported. Try a smaller batch or different image files.');
+    const failureNote = failures.length ? ` ${failures.length} could not be copied.` : '';
+    alert(`${saved} work photo${saved===1?' was':'s were'} copied into the visible Accutek Inventory Work Photos folder and categorized.${failureNote}\n\nThe originals are still in your personal gallery. Delete those originals only after you confirm the work copies are present.`);
+    viewPhotoSetModal(set);
+  }
+
+  function newPhotoSetModal() {
+    if (!state.folders.length) {
+      toast('Add the parent part folder before creating its photo set');
+      return folderModal(null, () => newPhotoSetModal());
+    }
+    openModal({
+      eyebrow: 'WORK PHOTOS',
+      title: 'New Photo Set',
+      body: `<form id="photoSetForm" class="form-grid">
+        <div class="field full"><label>Parent part folder</label><select name="partId" required>${folderOptions()}</select></div>
+        <div class="field full"><label>Work order / batch / run</label><input name="jobNo" maxlength="50" placeholder="Optional company tracking number"><div class="help">Use the number your company uses for this production batch, work order, lot, skid, or customer job. Leave it blank when there is no tracking number. It only organizes photos and email subjects; it does not change inventory.</div></div>
+        <div class="field"><label>Expected photos</label><input value="${fmt(photoTarget())}" readonly></div>
+        <div class="field full"><label>Set note</label><textarea name="note" maxlength="250" placeholder="Optional process, issue, order, or customer note"></textarea></div>
+        <div class="field full"><div class="work-photo-intro"><strong>Single master copy:</strong> photos taken here are saved once in Downloads/Accutek Inventory/Work Photos, separate from Camera/DCIM and visible through your Files app.</div></div>
+      </form>`,
+      footer: `<button id="cancelBtn" class="secondary">Cancel</button><button id="createPhotoSetBtn" class="primary">Create & Take First Photo</button>`
+    });
+    $('#cancelBtn').onclick = closeModal;
+    $('#createPhotoSetBtn').onclick = () => {
+      const form = $('#photoSetForm');
+      if (!form.reportValidity()) return;
+      const data = Object.fromEntries(new FormData(form));
+      const part = state.folders.find(folder => folder.id === data.partId);
+      if (!part) return toast('That parent part folder could not be found');
+      const set = {
+        id: uid(),
+        partId: part.id,
+        partName: part.name,
+        jobNo: String(data.jobNo || '').trim(),
+        note: String(data.note || '').trim(),
+        createdAt: nowIso(),
+        closed: false
+      };
+      state.workPhotoSets.unshift(set);
+      addTransaction('photo', 'Work photo set created', photoSetLabel(set), [], {
+        category:'changed',
+        partRefs:[{id:part.id,name:part.name}]
+      });
+      saveState();
+      closeModal();
+      captureWorkPhotoModal(set);
+    };
+  }
+
+  function captureWorkPhotoModal(set) {
+    const current = photosForSet(set.id).length;
+    const suggested = nextPhotoStage(set);
+    const stages = standardPhotoStages();
+    if (!stages.includes(suggested)) stages.push(suggested);
+    openModal({
+      eyebrow: 'PRIVATE WORK CAMERA',
+      title: `Photo ${current + 1} for ${set.partName}`,
+      body: `<form id="workPhotoForm" class="form-grid">
+        <div class="field full"><label>Photo stage</label>
+          <select id="workPhotoStageSelect" name="stage">
+            ${stages.map(stage => `<option ${stage === suggested ? 'selected' : ''}>${esc(stage)}</option>`).join('')}
+            <option value="Custom">Custom stage…</option>
+          </select>
+        </div>
+        <div id="customStageField" class="field full hidden"><label>Custom stage name</label><input id="customStageInput" maxlength="70" placeholder="Example: Weld inspection"></div>
+        <div class="field full"><label>Photo note</label><textarea name="notes" maxlength="250" placeholder="Optional issue, measurement, process, or result"></textarea></div>
+        <div class="field full">
+          <div class="photo-capture-status">
+            The camera may look like your normal camera, but Accutek Inventory saves one master copy to Downloads/Accutek Inventory/Work Photos instead of your personal Camera/DCIM roll.
+          </div>
+        </div>
+      </form>`,
+      footer: `<button id="cancelBtn" class="secondary">Cancel</button><button id="takeWorkPhotoBtn" class="primary">📷 Take Photo</button>`
+    });
+    const stageSelect = $('#workPhotoStageSelect');
+    const customField = $('#customStageField');
+    stageSelect.onchange = () => customField.classList.toggle('hidden', stageSelect.value !== 'Custom');
+    $('#cancelBtn').onclick = closeModal;
+    $('#takeWorkPhotoBtn').onclick = () => {
+      const form = $('#workPhotoForm');
+      const data = Object.fromEntries(new FormData(form));
+      const stage = stageSelect.value === 'Custom'
+        ? String($('#customStageInput').value || '').trim()
+        : String(data.stage || '').trim();
+      if (!stage) return toast('Enter the photo stage');
+      pendingWorkPhotoCapture = {
+        setId: set.id,
+        partId: set.partId,
+        partName: set.partName,
+        setName: set.jobNo ? `${set.partName} ${set.jobNo}` : `${set.partName} ${localDateKey(set.createdAt)}`,
+        stage,
+        notes: String(data.notes || '').trim()
+      };
+      closeModal();
+      els.workPhotoCameraInput.click();
+    };
+  }
+
+  async function handleWorkPhotoFile(file) {
+    const meta = pendingWorkPhotoCapture;
+    pendingWorkPhotoCapture = null;
+    if (!file || !meta) return;
+    const set = state.workPhotoSets.find(item => item.id === meta.setId);
+    if (!set) return toast('That photo set could not be found');
+
+    toast('Saving work photo…');
+    try {
+      let record;
+      if (window.SkidCountNative?.saveWorkPhoto) {
+        const fullDataUrl = await imageDataUrl(file, 2800, 0.9, false);
+        record = await requestNativeWorkPhotoSave(fullDataUrl, meta);
+        if (!record) throw new Error('No photo record was returned');
+      } else {
+        const browserDataUrl = await compressImage(file, 760, 0.52);
+        record = {
+          id: uid(),
+          path: '',
+          filename: `browser-work-photo-${Date.now()}.jpg`,
+          partId: meta.partId,
+          partName: meta.partName,
+          stage: meta.stage,
+          notes: meta.notes,
+          setId: meta.setId,
+          setName: meta.setName,
+          createdAt: nowIso(),
+          thumbnail: browserDataUrl,
+          browserDataUrl,
+          privateStorage: false,
+          persistentStorage: false,
+          fileSizeBytes: file.size || 0
+        };
+      }
+
+      state.workPhotos.push({
+        id: record.id || uid(),
+        path: record.path || '',
+        filename: record.filename || '',
+        partId: meta.partId,
+        partName: meta.partName,
+        stage: meta.stage,
+        notes: meta.notes,
+        setId: meta.setId,
+        setName: meta.setName,
+        createdAt: record.createdAt || nowIso(),
+        thumbnail: record.thumbnail || '',
+        browserDataUrl: record.browserDataUrl || '',
+        privateStorage: Boolean(record.privateStorage),
+        persistentStorage: Boolean(record.persistentStorage),
+        fileSizeBytes: clampNum(record.fileSizeBytes)
+      });
+      addTransaction('photo', 'Work photo saved', `${meta.partName} · ${meta.stage}`, [], {
+        category:'changed',
+        partRefs:[{id:meta.partId,name:meta.partName}]
+      });
+      saveState();
+      toast(`Work photo saved (${photosForSet(set.id).length} / ${photoTarget()})`);
+      viewPhotoSetModal(set);
+    } catch (error) {
+      console.error(error);
+      alert(`The work photo could not be saved. ${error?.message || 'Try taking the photo again.'}`);
+    }
+  }
+
+  function photoSetEmailBody(set, photos) {
+    const lines = [
+      `Part: ${set.partName}`,
+      set.jobNo ? `Work reference: ${set.jobNo}` : '',
+      set.note ? `Set note: ${set.note}` : '',
+      '',
+      `Attached photos: ${photos.length}`,
+      ...photos.map((photo, index) => {
+        const time = new Date(photo.createdAt).toLocaleString();
+        return `${index + 1}. ${photo.stage} — ${time}${photo.notes ? ` — ${photo.notes}` : ''}`;
+      })
+    ].filter(line => line !== '');
+    return lines.join('\n');
+  }
+
+  function emailPhotoSet(set) {
+    const photos = photosForSet(set.id);
+    if (!photos.length) return toast('Take at least one photo first');
+    const paths = photos.map(photo => photo.path).filter(Boolean);
+    const subjectPrefix = state.photoSettings?.subjectPrefix || 'Accutek work photos';
+    const subject = `${subjectPrefix} – ${photoSetLabel(set)}`;
+    const body = photoSetEmailBody(set, photos);
+    const recipient = state.photoSettings?.companyEmail || '';
+
+    if (window.SkidCountNative?.shareWorkPhotos && paths.length) {
+      window.SkidCountNative.shareWorkPhotos(
+        JSON.stringify(paths),
+        recipient,
+        subject,
+        body
+      );
+      return;
+    }
+
+    alert('The browser test cannot attach stored photos to an email. Use the installed Android app for Email Set. You can still test the photo-set workflow here.');
+  }
+
+  function exportPhotoSet(set) {
+    if (!photosForSet(set.id).length) return toast('There are no photos in this set');
+    state.photoSettings.lastFolderOpenedAt = nowIso();
+    persistState();
+    if (window.SkidCountNative?.openWorkPhotoFolder) {
+      window.SkidCountNative.openWorkPhotoFolder();
+      return;
+    }
+    toast('Use the installed Android app to open the visible Work Photos folder');
+  }
+
+  function exportAllWorkPhotos() {
+    if (!state.workPhotos.length) return toast('There are no work photos yet');
+    state.photoSettings.lastFolderOpenedAt = nowIso();
+    persistState();
+    if (window.SkidCountNative?.openWorkPhotoFolder) {
+      window.SkidCountNative.openWorkPhotoFolder();
+      return;
+    }
+    toast('Use the installed Android app to open the visible Work Photos folder');
+  }
+
+  function openPhotoViewer(photo) {
+    const src = workPhotoThumbnail(photo);
+    openModal({
+      eyebrow: 'WORK PHOTO',
+      title: photo.stage,
+      body: `${src ? `<div class="scan-preview"><img src="${src}" alt="${esc(photo.stage)}"></div>` : ''}
+        <div class="settings-card">
+          <h3>${esc(photo.partName)}</h3>
+          <p>${new Date(photo.createdAt).toLocaleString()}</p>
+          ${photo.notes ? `<p>${esc(photo.notes)}</p>` : ''}
+          <span class="photo-private-badge">${photo.privateStorage && !photo.persistentStorage ? 'Older private photo' : (photo.persistentStorage ? 'Visible work folder' : (photo.imported ? 'Imported browser copy' : 'Browser test copy'))}</span>${photo.sourceName ? `<p class="part-meta">Original file: ${esc(photo.sourceName)}</p>` : ''}
+        </div>`,
+      footer: `${photo.path && window.SkidCountNative?.openWorkPhoto ? '<button id="openFullPhotoBtn" class="secondary">Open Full Photo</button>' : ''}<button id="closePhotoBtn" class="primary">Close</button>`
+    });
+    $('#closePhotoBtn').onclick = closeModal;
+    if ($('#openFullPhotoBtn')) $('#openFullPhotoBtn').onclick = () => window.SkidCountNative.openWorkPhoto(photo.path);
+  }
+
+  function deleteWorkPhotoRecord(photo, ask = true) {
+    if (ask && !confirm(`Delete “${photo.stage}”? This deletes the master work-photo file from the visible Work Photos folder too.`)) return false;
+    if (photo.path && window.SkidCountNative?.deleteWorkPhoto) {
+      window.SkidCountNative.deleteWorkPhoto(photo.path);
+    }
+    state.workPhotos = state.workPhotos.filter(item => item.id !== photo.id);
+    addTransaction('photo', 'Work photo deleted', `${photo.partName} · ${photo.stage}`, [], {
+      category:'changed',
+      partRefs:[{id:photo.partId,name:photo.partName}]
+    });
+    saveState();
+    return true;
+  }
+
+  function deletePhotoSet(set) {
+    const photos = photosForSet(set.id);
+    if (!confirm(`Delete the photo set for ${photoSetLabel(set)} and all ${photos.length} photo${photos.length === 1 ? '' : 's'}?`)) return;
+    photos.forEach(photo => {
+      if (photo.path && window.SkidCountNative?.deleteWorkPhoto) window.SkidCountNative.deleteWorkPhoto(photo.path);
+    });
+    state.workPhotos = state.workPhotos.filter(photo => photo.setId !== set.id);
+    state.workPhotoSets = state.workPhotoSets.filter(item => item.id !== set.id);
+    addTransaction('photo', 'Work photo set deleted', photoSetLabel(set), [], {
+      category:'changed',
+      partRefs:[{id:set.partId,name:set.partName}]
+    });
+    saveState();
+    closeModal();
+    toast('Photo set deleted');
+  }
+
+  function viewPhotoSetModal(set) {
+    const photos = photosForSet(set.id);
+    openModal({
+      eyebrow: 'WORK PHOTO SET',
+      title: photoSetLabel(set),
+      body: `<div class="settings-card">
+          <h3>${fmt(photos.length)} of ${fmt(photoTarget())} expected photos</h3>
+          <p>${set.note ? esc(set.note) : 'No set note.'}</p>
+          <span class="photo-private-badge">Visible work folder · separate from Camera</span>
+        </div>
+        <div class="photo-stage-list">
+          ${photos.length ? photos.map(photo => {
+            const src = workPhotoThumbnail(photo);
+            return `<article class="photo-stage-item" data-photo-id="${photo.id}">
+              ${src ? `<img src="${src}" alt="${esc(photo.stage)}">` : '<div></div>'}
+              <div><h3>${esc(photo.stage)}</h3><p>${new Date(photo.createdAt).toLocaleString()}${photo.notes ? ` · ${esc(photo.notes)}` : ''}</p></div>
+              <div class="photo-stage-actions">
+                <button type="button" class="secondary" data-set-modal-action="open" data-photo-id="${photo.id}">Open</button>
+                <button type="button" class="danger" data-set-modal-action="delete" data-photo-id="${photo.id}">Delete</button>
+              </div>
+            </article>`;
+          }).join('') : '<div class="history-empty-filter">No photos in this set yet.</div>'}
+        </div>`,
+      footer: `<button id="closeSetBtn" class="secondary">Close</button><button id="emailSetBtn" class="secondary">Email Set</button><button id="addSetPhotoBtn" class="primary">📷 Add Photo</button>`
+    });
+    $('#closeSetBtn').onclick = closeModal;
+    $('#emailSetBtn').onclick = () => emailPhotoSet(set);
+    $('#addSetPhotoBtn').onclick = () => captureWorkPhotoModal(set);
+    els.modalBody.onclick = event => {
+      const btn = event.target.closest('[data-set-modal-action]');
+      if (!btn) return;
+      const photo = state.workPhotos.find(item => item.id === btn.dataset.photoId);
+      if (!photo) return;
+      if (btn.dataset.setModalAction === 'open') openPhotoViewer(photo);
+      if (btn.dataset.setModalAction === 'delete' && deleteWorkPhotoRecord(photo)) viewPhotoSetModal(set);
+    };
+  }
+
+  function photoSetMoreModal(set) {
+    const photos = photosForSet(set.id);
+    openModal({
+      eyebrow: 'PHOTO SET OPTIONS',
+      title: photoSetLabel(set),
+      body: `<div class="settings-card">
+        <h3>${fmt(photos.length)} saved photo${photos.length === 1 ? '' : 's'}</h3>
+        <p>Open the visible Work Photos folder, email the set, or delete the set and its master files.</p>
+      </div>`,
+      footer: `<button id="closeMoreBtn" class="secondary">Close</button><button id="exportSetBtn" class="secondary">Open Folder</button><button id="deleteSetBtn" class="danger">Delete Set</button>`
+    });
+    $('#closeMoreBtn').onclick = closeModal;
+    $('#exportSetBtn').onclick = () => exportPhotoSet(set);
+    $('#deleteSetBtn').onclick = () => deletePhotoSet(set);
+  }
+
+  function undoTransaction(id) {
+    const tx=state.transactions.find(t=>t.id===id);
+    if(!tx || tx.undone || !tx.deltas?.length) return;
+    if(!confirm(`Undo “${tx.title}”?`)) return;
+    applyDeltas(tx.deltas,-1); tx.undone=true; tx.undoneAt=nowIso();
+    addTransaction('undo','Transaction undone',tx.title,[],{category:'changed',partRefs:transactionPartRefs(tx).map(ref=>({id:ref.id,name:ref.name}))});
+    saveState(); toast('Transaction undone');
+  }
+
+  function exportCsv() {
+    const rows=[['Date','Type','Title','Detail','Undone']];
+    state.transactions.forEach(t=>rows.push([t.createdAt,t.type,t.title,t.detail,t.undone?'Yes':'No']));
+    const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const filename=`accutek-inventory-history-${new Date().toISOString().slice(0,10)}.csv`;
+    if (window.SkidCountNative?.saveTextFile) {
+      window.SkidCountNative.saveTextFile(filename,'text/csv',csv);
+      return;
+    }
+    downloadBlob(new Blob([csv],{type:'text/csv'}),filename);
+  }
+
+  function downloadBackup() {
+    state.photoSettings.lastBackupAt = nowIso();
+    persistState();
+    const filename=`accutek-inventory-backup-${new Date().toISOString().slice(0,10)}.json`;
+    const content=JSON.stringify(state,null,2);
+    if (window.SkidCountNative?.saveTextFile) {
+      window.SkidCountNative.saveTextFile(filename,'application/json',content);
+      return;
+    }
+    downloadBlob(new Blob([content],{type:'application/json'}),filename);
+  }
+
+  function downloadBlob(blob, filename) {
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }
+
+  async function restoreBackup(file) {
+    try {
+      const parsed=JSON.parse(await file.text());
+      if(!parsed || !Array.isArray(parsed.parts) || !Array.isArray(parsed.transactions)) throw new Error('Invalid');
+      if(!confirm('Replace the current app data with this backup?')) return;
+      state=normalizeState(parsed); saveState(); toast('Backup restored');
+    } catch { alert('That file is not a valid Accutek Inventory backup.'); }
+  }
+
+  function resetApp() {
+    if(!confirm('Erase every parent folder, hardware item, history record, photo-set record, and cached preview from this app? Visible master work-photo files in Downloads will remain available in Files.')) return;
+    state.workPhotos
+      .filter(photo => photo.privateStorage && !photo.persistentStorage)
+      .forEach(photo=>{
+        if(photo.path && window.SkidCountNative?.deleteWorkPhoto) window.SkidCountNative.deleteWorkPhoto(photo.path);
+      });
+    state=defaultState(); saveState(); toast('App data reset; visible work photos were kept');
+  }
+
+  // Navigation and events
+  $$('.nav-btn').forEach(btn=>btn.onclick=()=>{
+    $$('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+    $$('.view').forEach(v=>v.classList.remove('active')); $(`#${btn.dataset.view}`).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+  $('#addFolderBtn').onclick=()=>folderModal();
+  $('#emptyAddBtn').onclick=()=>folderModal();
+  $('#fullSkidBtn').onclick=fullSkidModal;
+  $('#customReceiptBtn').onclick=()=>customReceiptModal();
+  $('#scanReceiptBtn').onclick=()=>els.labelCameraInput.click();
+  els.labelCameraInput.onchange=()=>{ handleLabelPhoto(els.labelCameraInput.files?.[0]); els.labelCameraInput.value=''; };
+  els.photoStorageBtn.onclick=photoStorageModal;
+  $('#importPhotosBtn').onclick=importExistingPhotosModal;
+  $('#newPhotoSetBtn').onclick=newPhotoSetModal;
+  $('#emptyPhotoSetBtn').onclick=newPhotoSetModal;
+  $('#exportAllPhotosBtn').onclick=exportAllWorkPhotos;
+  els.workPhotoCameraInput.onchange=()=>{
+    const file=els.workPhotoCameraInput.files?.[0];
+    els.workPhotoCameraInput.value='';
+    handleWorkPhotoFile(file);
+  };
+  els.workPhotoImportInput.onchange=()=>{
+    const files=Array.from(els.workPhotoImportInput.files || []);
+    els.workPhotoImportInput.value='';
+    const setup=pendingPhotoImportSetup;
+    pendingPhotoImportSetup=null;
+    if(files.length && setup) categorizeImportedPhotosModal(files,setup);
+  };
+  els.photoSearchInput.oninput=renderWorkPhotos;
+  els.appearanceSelect.onchange=()=>{
+    state.appearance=els.appearanceSelect.value;
+    persistState();
+    applyAppearance();
+    toast(state.appearance === 'system' ? 'Following phone appearance' : `${state.appearance === 'dark' ? 'Dark' : 'Light'} mode enabled`);
+  };
+  systemThemeQuery.addEventListener?.('change',()=>{
+    if(state.appearance === 'system') applyAppearance();
+  });
+  els.companyEmailInput.onchange=()=>{
+    state.photoSettings.companyEmail=els.companyEmailInput.value.trim();
+    saveState();
+    toast('Company email saved');
+  };
+  els.photoTargetInput.onchange=()=>{
+    state.photoSettings.targetPerSet=Math.max(1,Math.min(20,clampNum(els.photoTargetInput.value,5)));
+    saveState();
+    toast('Photo target saved');
+  };
+  els.photoSubjectInput.onchange=()=>{
+    state.photoSettings.subjectPrefix=els.photoSubjectInput.value.trim() || 'Accutek work photos';
+    saveState();
+    toast('Email subject saved');
+  };
+  $('#manageAssembliesBtn').onclick=manageAssembliesModal;
+  $('#recordAssembliesBtn').onclick=recordAssembliesModal;
+  $('#helpBtn').onclick=helpGuideModal;
+  $('#settingsHelpBtn').onclick=helpGuideModal;
+  $('#exportCsvBtn').onclick=exportCsv;
+  $('#backupBtn').onclick=downloadBackup;
+  $('#restoreInput').onchange=e=>{ if(e.target.files?.[0]) restoreBackup(e.target.files[0]); e.target.value=''; };
+  $('#resetBtn').onclick=resetApp;
+  els.searchInput.oninput=renderParts;
+  els.summaryScopeSelect.onchange=()=>{
+    state.summaryScope=els.summaryScopeSelect.value || 'all';
+    persistState();
+    renderSummary();
+  };
+  $('#closeModalBtn').onclick=closeModal;
+  els.modal.addEventListener('click', e=>{ if(e.target===els.modal) closeModal(); });
+
+  els.partsList.addEventListener('click',e=>{
+    const folderBtn=e.target.closest('button[data-folder-action]');
+    if(folderBtn){
+      e.preventDefault();
+      e.stopPropagation();
+      const folder=state.folders.find(item=>item.id===folderBtn.dataset.folderId);
+      if(!folder) return toast('That parent folder could not be found');
+      if(folderBtn.dataset.folderAction==='add-child') return addPartModal(null,folder.id);
+      if(folderBtn.dataset.folderAction==='edit-folder') return folderModal(folder);
+      return;
+    }
+    const btn=e.target.closest('button[data-action]');
+    if(!btn) return;
+    const partId=btn.dataset.partId || btn.closest('.part-card')?.dataset.id;
+    const part=state.parts.find(p=>p.id===partId);
+    if(!part) return toast('That hardware item could not be found');
+    const actions={
+      use:()=>usePartModal(part),
+      adjust:()=>setCountsModal(part),
+      edit:()=>addPartModal(part),
+      'add-box':()=>quickBoxAdjust(part,1),
+      'remove-box':()=>quickBoxAdjust(part,-1),
+      'add-skid':()=>quickSkidAdjust(part,1),
+      'remove-skid':()=>quickSkidAdjust(part,-1)
+    };
+    try { actions[btn.dataset.action]?.(); }
+    catch (error) { console.error(error); toast('That inventory button could not complete the change'); }
+  });
+  els.photoSetList.addEventListener('click',event=>{
+    const btn=event.target.closest('[data-photo-action]');
+    if(!btn) return;
+    if(btn.dataset.photoAction==='open-photo'){
+      const photo=state.workPhotos.find(item=>item.id===btn.dataset.photoId);
+      if(photo) openPhotoViewer(photo);
+      return;
+    }
+    const set=state.workPhotoSets.find(item=>item.id===btn.dataset.setId);
+    if(!set) return toast('That photo set could not be found');
+    const actions={
+      'add-photo':()=>captureWorkPhotoModal(set),
+      'view-set':()=>viewPhotoSetModal(set),
+      'email-set':()=>emailPhotoSet(set),
+      'more-set':()=>photoSetMoreModal(set)
+    };
+    actions[btn.dataset.photoAction]?.();
+  });
+  $('#historyTabs').addEventListener('click',e=>{
+    const btn=e.target.closest('[data-history-filter]');
+    if(!btn) return;
+    historyFilter=btn.dataset.historyFilter;
+    renderHistory();
+  });
+  els.historyList.addEventListener('click',e=>{ const btn=e.target.closest('[data-undo]'); if(btn) undoTransaction(btn.dataset.undo); });
+
+  window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installPrompt=e; els.installBtn.classList.remove('hidden'); });
+  els.installBtn.onclick=async()=>{ if(!installPrompt) return; installPrompt.prompt(); await installPrompt.userChoice; installPrompt=null; els.installBtn.classList.add('hidden'); };
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+  window.reloadNativeState = () => {
+    try {
+      const nativeState = window.SkidCountNative?.getState?.() || '';
+      if (!nativeState) {
+        persistState();
+        return;
+      }
+      const parsed = JSON.parse(nativeState);
+      state = normalizeState(parsed);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+    } catch { /* Keep the current in-memory state if native data cannot be read. */ }
+  };
+
+  applyAppearance();
+  renderAll();
+  persistState();
+})();
+
+</script>
+</body>
+</html>
